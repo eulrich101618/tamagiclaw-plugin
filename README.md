@@ -13,7 +13,7 @@ A tiny Tamagotchi core for OpenClaw. No dashboard, no ticker — just state, laz
 ## Install
 
 ```bash
-openclaw plugins install --link ./ --force
+openclaw plugins install clawhub:openclaw-tamagiclaw
 # or from GitHub:
 openclaw plugins install github:eulrich101618/tamagiclaw-plugin --force
 ```
@@ -81,7 +81,7 @@ Absolute overrides: `TAMAGICLAW_STATE` / `TAMAGICLAW_TASKS` env vars or
 | `stateFile` | Absolute path to `state.json`. Default: `<agent-workspace>/tamagi/state.json` |
 | `tasksFile` | Absolute path to `tasks.json`. Default: `<agent-workspace>/tamagi/tasks.json` |
 
-`<agent-workspace>` is the calling agent's workspace (`ctx.workspaceDir`, e.g. `.../agents/eulrich`). Each agent uses its own `tamagi/` dir — nothing is shared.
+`<agent-workspace>` is the calling agent's workspace (`ctx.workspaceDir`). Each agent uses its own `tamagi/` dir — nothing is shared.
 
 ## Tasks JSON
 
