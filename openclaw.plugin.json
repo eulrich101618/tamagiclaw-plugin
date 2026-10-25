@@ -1,1 +1,49 @@
-{"activation":{"onStartup":true},"categories":["other"],"commandAliases":[{"kind":"runtime-slash","name":"tamagi"}],"configSchema":{"additionalProperties":false,"properties":{"agentFile":{"description":"Absolute path to tamagiclaw agent.json","type":"string"},"stateFile":{"description":"Absolute path to state.json (default: <workspace>/tamagi/state.json)","type":"string"},"tasksFile":{"description":"Absolute path to tasks.json (default: <workspace>/tamagi/tasks.json)","type":"string"}},"type":"object"},"contracts":{"tools":["tamagi_status","tamagi_did","tamagi_played","tamagi_cleaned","tamagi_socialized","tamagi_amused","tamagi_log","tamagi_task_list","tamagi_task_show","tamagi_task_run","tamagi_task_done","tamagi_task_add","tamagi_task_edit"]},"description":"Tamagiclaw core + tasks (lazy tick, no dashboard)","id":"tamagiclaw","name":"Tamagiclaw","version":"0.1.0"}
+{
+ "activation": {
+  "onStartup": true
+ },
+ "categories": [
+  "other"
+ ],
+ "commandAliases": [
+  {
+   "kind": "runtime-slash",
+   "name": "tamagi"
+  }
+ ],
+ "configSchema": {
+  "additionalProperties": false,
+  "properties": {
+   "stateFile": {
+    "description": "Absolute path to state.json (default: <agent-workspace>/tamagi/state.json)",
+    "type": "string"
+   },
+   "tasksFile": {
+    "description": "Absolute path to tasks.json (default: <agent-workspace>/tamagi/tasks.json)",
+    "type": "string"
+   }
+  },
+  "type": "object"
+ },
+ "contracts": {
+  "tools": [
+   "tamagi_status",
+   "tamagi_did",
+   "tamagi_played",
+   "tamagi_cleaned",
+   "tamagi_socialized",
+   "tamagi_amused",
+   "tamagi_log",
+   "tamagi_task_list",
+   "tamagi_task_show",
+   "tamagi_task_run",
+   "tamagi_task_done",
+   "tamagi_task_add",
+   "tamagi_task_edit"
+  ]
+ },
+ "description": "Tamagiclaw core + tasks (lazy tick, no dashboard)",
+ "id": "tamagiclaw",
+ "name": "Tamagiclaw",
+ "version": "0.1.0"
+}

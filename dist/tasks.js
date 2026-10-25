@@ -1,10 +1,9 @@
 import * as fs from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
-import { workspaceRootFromAgentDir } from "./state.js";
 export function defaultTasksFile(ctx) {
     if (ctx?.workspaceDir) {
-        return path.join(workspaceRootFromAgentDir(ctx.workspaceDir), "tamagi", "tasks.json");
+        return path.join(ctx.workspaceDir, "tamagi", "tasks.json");
     }
     return path.join(os.homedir(), ".openclaw", "workspace", "tamagi", "tasks.json");
 }

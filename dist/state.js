@@ -10,24 +10,11 @@ export const CMD_TO_KEY = {
     amused: "boredom",
 };
 const RATE_48H = 100.0 / 48.0;
-export function workspaceRootFromAgentDir(agentDir) {
-    const parts = agentDir.split(path.sep);
-    const i = parts.lastIndexOf("agents");
-    if (i > 0)
-        return parts.slice(0, i).join(path.sep) || path.sep;
-    return agentDir;
-}
 export function defaultStateFile(ctx) {
     if (ctx?.workspaceDir) {
-        return path.join(workspaceRootFromAgentDir(ctx.workspaceDir), "tamagi", "state.json");
+        return path.join(ctx.workspaceDir, "tamagi", "state.json");
     }
     return path.join(os.homedir(), ".openclaw", "workspace", "tamagi", "state.json");
-}
-export function defaultAgentFile(ctx) {
-    if (ctx?.workspaceDir) {
-        return path.join(workspaceRootFromAgentDir(ctx.workspaceDir), "tamagi", "agent.json");
-    }
-    return path.join(os.homedir(), ".openclaw", "workspace", "tamagi", "agent.json");
 }
 function expandHome(p) {
     return p.startsWith("~") ? path.join(os.homedir(), p.slice(1)) : p;

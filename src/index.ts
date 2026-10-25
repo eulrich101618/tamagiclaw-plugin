@@ -45,7 +45,7 @@ export default definePluginEntry({
   name: "Tamagiclaw",
   description: "Tamagiclaw core (lazy tick, no dashboard)",
   register(api) {
-    const cfg = (api.pluginConfig ?? {}) as { stateFile?: string; agentFile?: string; tasksFile?: string };
+    const cfg = (api.pluginConfig ?? {}) as { stateFile?: string; tasksFile?: string };
     type Ctx = { workspaceDir?: string };
     const statePath = (ctx?: Ctx) => resolveStateFile(cfg, ctx as { workspaceDir?: string });
     const tasksPath = (ctx?: Ctx) => resolveTasksFile(cfg, ctx as { workspaceDir?: string });

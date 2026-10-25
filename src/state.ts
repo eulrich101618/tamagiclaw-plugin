@@ -21,25 +21,11 @@ export type TamagiState = Record<NeedKey, number> & {
   last: Record<string, { at: string; action: string }>;
 };
 
-export function workspaceRootFromAgentDir(agentDir: string): string {
-  const parts = agentDir.split(path.sep);
-  const i = parts.lastIndexOf("agents");
-  if (i > 0) return parts.slice(0, i).join(path.sep) || path.sep;
-  return agentDir;
-}
-
 export function defaultStateFile(ctx?: { workspaceDir?: string }): string {
   if (ctx?.workspaceDir) {
-    return path.join(workspaceRootFromAgentDir(ctx.workspaceDir), "tamagi", "state.json");
+    return path.join(ctx.workspaceDir, "tamagi", "state.json");
   }
   return path.join(os.homedir(), ".openclaw", "workspace", "tamagi", "state.json");
-}
-
-export function defaultAgentFile(ctx?: { workspaceDir?: string }): string {
-  if (ctx?.workspaceDir) {
-    return path.join(workspaceRootFromAgentDir(ctx.workspaceDir), "tamagi", "agent.json");
-  }
-  return path.join(os.homedir(), ".openclaw", "workspace", "tamagi", "agent.json");
 }
 
 function expandHome(p: string): string {

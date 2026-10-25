@@ -9,11 +9,9 @@ export type Task = {
 };
 type DB = { time_slots?: { tag: string; start: number; end: number }[]; tasks: Task[] };
 
-import { workspaceRootFromAgentDir } from "./state.js";
-
 export function defaultTasksFile(ctx?: { workspaceDir?: string }): string {
   if (ctx?.workspaceDir) {
-    return path.join(workspaceRootFromAgentDir(ctx.workspaceDir), "tamagi", "tasks.json");
+    return path.join(ctx.workspaceDir, "tamagi", "tasks.json");
   }
   return path.join(os.homedir(), ".openclaw", "workspace", "tamagi", "tasks.json");
 }
