@@ -135,14 +135,15 @@ export default definePluginEntry({
                 const raw = (ctx.args ?? "").trim();
                 const [sub, ...rest] = raw.split(/\s+/);
                 const action = rest.join(" ");
+                const c = ctx;
                 if (!sub || sub === "status")
-                    return { text: fmt(read()) };
+                    return { text: fmt(read(c)) };
                 if (sub === "help")
                     return { text: HELP_MAIN };
                 if (sub === "log") {
                     if (rest[0] === "help" || rest[0] === "--help" || rest[0] === "-h")
                         return { text: HELP_LOG };
-                    return { text: (read().log || []).slice(-15).join("\n") || "—" };
+                    return { text: (read(c).log || []).slice(-15).join("\n") || "—" };
                 }
                 ;
                 if (sub in CMD_TO_KEY) {
@@ -151,7 +152,7 @@ export default definePluginEntry({
                     if (!action)
                         return { text: `Missing description. e.g. /tamagi ${sub} <what was done>` };
                     try {
-                        return { text: `ok — ${fmt(reset(sub, action))}` };
+                        return { text: `ok — ${fmt(reset(sub, action, c))}` };
                     }
                     catch (e) {
                         return { text: String(e?.message ?? e) };
@@ -172,16 +173,16 @@ export default definePluginEntry({
                     if (hs === "done" && (!hrest[0] || hrest[0] === "help"))
                         return { text: "Use: /tamagi task done <id> [note]" };
                     if (!hs || hs === "list")
-                        return hb(undefined, (f) => hbList(f, tags));
+                        return hb(c, (f) => hbList(f, tags));
                     if (hs === "show")
-                        return hb(undefined, (f) => hbShow(f, hrest[0] ?? ""));
+                        return hb(c, (f) => hbShow(f, hrest[0] ?? ""));
                     if (hs === "run") {
                         if (hrest.length === 1 && !harg.includes(" ") && !harg.includes(","))
-                            return hb(undefined, (f) => hbRun(f, { id: hrest[0], tags: [] }));
-                        return hb(undefined, (f) => hbRun(f, { tags }));
+                            return hb(c, (f) => hbRun(f, { id: hrest[0], tags: [] }));
+                        return hb(c, (f) => hbRun(f, { tags }));
                     }
                     if (hs === "done")
-                        return hb(undefined, (f) => hbDone(f, hrest[0] ?? "", hrest.slice(1).join(" ") || undefined));
+                        return hb(c, (f) => hbDone(f, hrest[0] ?? "", hrest.slice(1).join(" ") || undefined));
                     if (hs === "add")
                         return { text: "Use: /tamagi task list|run|show|done (add/edit via tool)" };
                     return { text: "Use: /tamagi task list|run|show|done" };
