@@ -9,7 +9,7 @@ import {
 } from "./tasks.js";
 
 function fmt(s: TamagiState): string {
-  const lines = KEYS.map((k) => `${k}: ${s[k]}`);
+  const lines = KEYS.map((k) => `${k}: ${s[k]}%`);
   return `${lines.join(" | ")} — ${moodLabel(s)}`;
 }
 

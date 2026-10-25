@@ -55,7 +55,7 @@ function clamp(v) {
 }
 export function loadState(stateFile) {
     const fallback = {
-        drive: 20, curiosity: 30, disorder: 10, loneliness: 15, boredom: 15,
+        drive: 0, curiosity: 0, disorder: 0, loneliness: 0, boredom: 0,
         last_update: nowIso(), log: [], last: {},
     };
     try {
