@@ -6,7 +6,7 @@ import {
 } from "./state.js";
 import {
   resolveTasksFile, splitTags, hbList, hbShow, hbRun, hbDone, hbAdd, hbEdit,
-} from "./heartbeat.js";
+} from "./tasks.js";
 
 function fmt(s: TamagiState): string {
   const lines = KEYS.map((k) => `${k}: ${s[k]}`);

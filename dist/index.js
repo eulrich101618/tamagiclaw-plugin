@@ -1,7 +1,7 @@
 import { Type } from "typebox";
 import { definePluginEntry } from "openclaw/plugin-sdk/plugin-entry";
 import { KEYS, CMD_TO_KEY, loadAndTick, saveState, resolveStateFile, moodLabel, worstKey, mood, doReset, } from "./state.js";
-import { resolveTasksFile, splitTags, hbList, hbShow, hbRun, hbDone, hbAdd, hbEdit, } from "./heartbeat.js";
+import { resolveTasksFile, splitTags, hbList, hbShow, hbRun, hbDone, hbAdd, hbEdit, } from "./tasks.js";
 function fmt(s) {
     const lines = KEYS.map((k) => `${k}: ${s[k]}`);
     return `${lines.join(" | ")} — ${moodLabel(s)}`;
