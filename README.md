@@ -73,13 +73,18 @@ openclaw tamagi task run <id>
 openclaw tamagi task help
 ```
 
-The terminal CLI has no agent context, so it uses the `agent`
-parameter (default: `main`):
+`<agent-workspace>` is the agent's own workspace: from tool context when
+available, else from the gateway roster (`agents.entries.<id>.workspace`).
+The terminal CLI has no context, so it uses the `agent` parameter
+(default: `main`) for the roster lookup:
 
-`<workspace>/agents/<agent>/tamagi/state.json`
+```bash
+openclaw tamagi status
+TAMAGICLAW_AGENT=other openclaw tamagi status
+```
 
-Set another agent via plugin config (`agent: eulrich`) or env vars
-(`TAMAGICLAW_STATE`, `TAMAGICLAW_TASKS` for absolute paths).
+Absolute overrides: `TAMAGICLAW_STATE` / `TAMAGICLAW_TASKS` env vars or
+`stateFile` / `tasksFile` in the plugin config.
 
 ## Configuration
 
@@ -87,9 +92,9 @@ Set another agent via plugin config (`agent: eulrich`) or env vars
 
 | Key | Description |
 |-----|-------------|
-| `agent` | Agent name used when no context is available (terminal CLI). Default: `main`. |
-| `stateFile` | Absolute path to `state.json`. Default: `<agent-workspace>/tamagi/state.json` (CLI: `<workspace>/agents/<agent>/tamagi/state.json`) |
-| `tasksFile` | Absolute path to `tasks.json`. Default: `<agent-workspace>/tamagi/tasks.json` (CLI: `<workspace>/agents/<agent>/tamagi/tasks.json`) |
+| `agent` | Agent id from the gateway roster, used only without tool context (terminal CLI). Default: `main`. |
+| `stateFile` | Absolute path to `state.json`. Default: `<agent-workspace>/tamagi/state.json` |
+| `tasksFile` | Absolute path to `tasks.json`. Default: `<agent-workspace>/tamagi/tasks.json` |
 
 `<agent-workspace>` is the calling agent's workspace (`ctx.workspaceDir`, e.g. `.../agents/eulrich`). Each agent uses its own `tamagi/` dir — nothing is shared.
 

@@ -21,12 +21,36 @@ export type TamagiState = Record<NeedKey, number> & {
   last: Record<string, { at: string; action: string }>;
 };
 
-export function defaultStateFile(ctx?: { workspaceDir?: string }, agent = "main"): string {
-  if (ctx?.workspaceDir) {
-    return path.join(ctx.workspaceDir, "tamagi", "state.json");
+function configDir(): string {
+  return process.env.OPENCLAW_STATE_DIR || path.join(os.homedir(), ".openclaw");
+}
+
+let rosterCache: Record<string, unknown> | null = null;
+
+function roster(): Record<string, unknown> {
+  if (rosterCache) return rosterCache;
+  try {
+    rosterCache = JSON.parse(fs.readFileSync(path.join(configDir(), "openclaw.json"), "utf-8")) as Record<string, unknown>;
+  } catch {
+    rosterCache = {};
   }
-  // No ctx (terminal CLI): per-agent dir under the default workspace.
-  return path.join(os.homedir(), ".openclaw", "workspace", "agents", agent, "tamagi", "state.json");
+  return rosterCache;
+}
+
+// Agent id -> workspace, per gateway roster (agents.entries.<id>.workspace).
+// Workspaces can live anywhere; never guess subpaths.
+export function agentWorkspace(agent = "main"): string {
+  const agents = (roster()["agents"] ?? {}) as Record<string, Record<string, Record<string, string>>>;
+  const hit = agents["entries"]?.[agent]?.["workspace"]
+    || (agents["defaults"] as unknown as Record<string, string> | undefined)?.["workspace"]
+    || process.env.OPENCLAW_WORKSPACE_DIR
+    || path.join(os.homedir(), ".openclaw", "workspace");
+  return expandHome(hit);
+}
+
+export function defaultStateFile(ctx?: { workspaceDir?: string }, agent = "main"): string {
+  const ws = ctx?.workspaceDir || agentWorkspace(agent);
+  return path.join(ws, "tamagi", "state.json");
 }
 
 function expandHome(p: string): string {
@@ -34,7 +58,8 @@ function expandHome(p: string): string {
 }
 
 export function resolveStateFile(cfg?: { stateFile?: string; agent?: string }, ctx?: { workspaceDir?: string }): string {
-  const p = cfg?.stateFile || process.env.TAMAGICLAW_STATE || defaultStateFile(ctx, cfg?.agent);
+  const agent = cfg?.agent || process.env.TAMAGICLAW_AGENT || "main";
+  const p = cfg?.stateFile || process.env.TAMAGICLAW_STATE || defaultStateFile(ctx, agent);
   return expandHome(p);
 }
 

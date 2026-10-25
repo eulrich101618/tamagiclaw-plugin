@@ -10,18 +10,41 @@ export const CMD_TO_KEY = {
     amused: "boredom",
 };
 const RATE_48H = 100.0 / 48.0;
-export function defaultStateFile(ctx, agent = "main") {
-    if (ctx?.workspaceDir) {
-        return path.join(ctx.workspaceDir, "tamagi", "state.json");
+function configDir() {
+    return process.env.OPENCLAW_STATE_DIR || path.join(os.homedir(), ".openclaw");
+}
+let rosterCache = null;
+function roster() {
+    if (rosterCache)
+        return rosterCache;
+    try {
+        rosterCache = JSON.parse(fs.readFileSync(path.join(configDir(), "openclaw.json"), "utf-8"));
     }
-    // No ctx (terminal CLI): per-agent dir under the default workspace.
-    return path.join(os.homedir(), ".openclaw", "workspace", "agents", agent, "tamagi", "state.json");
+    catch {
+        rosterCache = {};
+    }
+    return rosterCache;
+}
+// Agent id -> workspace, per gateway roster (agents.entries.<id>.workspace).
+// Workspaces can live anywhere; never guess subpaths.
+export function agentWorkspace(agent = "main") {
+    const agents = (roster()["agents"] ?? {});
+    const hit = agents["entries"]?.[agent]?.["workspace"]
+        || agents["defaults"]?.["workspace"]
+        || process.env.OPENCLAW_WORKSPACE_DIR
+        || path.join(os.homedir(), ".openclaw", "workspace");
+    return expandHome(hit);
+}
+export function defaultStateFile(ctx, agent = "main") {
+    const ws = ctx?.workspaceDir || agentWorkspace(agent);
+    return path.join(ws, "tamagi", "state.json");
 }
 function expandHome(p) {
     return p.startsWith("~") ? path.join(os.homedir(), p.slice(1)) : p;
 }
 export function resolveStateFile(cfg, ctx) {
-    const p = cfg?.stateFile || process.env.TAMAGICLAW_STATE || defaultStateFile(ctx, cfg?.agent);
+    const agent = cfg?.agent || process.env.TAMAGICLAW_AGENT || "main";
+    const p = cfg?.stateFile || process.env.TAMAGICLAW_STATE || defaultStateFile(ctx, agent);
     return expandHome(p);
 }
 function nowIso() {

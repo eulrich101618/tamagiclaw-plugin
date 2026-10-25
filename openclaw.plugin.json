@@ -15,16 +15,16 @@
   "additionalProperties": false,
   "properties": {
    "stateFile": {
-    "description": "Absolute path to state.json (default: <agent-workspace>/tamagi/state.json, CLI: <workspace>/agents/<agent>/tamagi/state.json)",
+    "description": "Absolute path to state.json (default: <agent-workspace>/tamagi/state.json)",
     "type": "string"
    },
    "tasksFile": {
-    "description": "Absolute path to tasks.json (default: <agent-workspace>/tamagi/tasks.json, CLI: <workspace>/agents/<agent>/tamagi/tasks.json)",
+    "description": "Absolute path to tasks.json (default: <agent-workspace>/tamagi/tasks.json)",
     "type": "string"
    },
    "agent": {
     "type": "string",
-    "description": "Agent name for file resolution without context (default: main). Files: <workspace>/agents/<agent>/tamagi/"
+    "description": "Agent id from the gateway roster (default: main). Used only when no tool context exists (terminal CLI). Workspace comes from agents.entries.<id>.workspace."
    }
   },
   "type": "object"
