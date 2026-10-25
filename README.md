@@ -73,15 +73,13 @@ openclaw tamagi task run <id>
 openclaw tamagi task help
 ```
 
-The terminal CLI has no agent context, so it cannot know your workspace.
-Pin it with env vars (a workspace can live anywhere):
+The terminal CLI has no agent context, so it uses the `agent`
+parameter (default: `main`):
 
-```bash
-export TAMAGICLAW_STATE="$HOME/my-workspace/tamagi/state.json"
-export TAMAGICLAW_TASKS="$HOME/my-workspace/tamagi/tasks.json"
-```
+`<workspace>/agents/<agent>/tamagi/state.json`
 
-Alternatively set absolute `stateFile` / `tasksFile` paths in the plugin config.
+Set another agent via plugin config (`agent: eulrich`) or env vars
+(`TAMAGICLAW_STATE`, `TAMAGICLAW_TASKS` for absolute paths).
 
 ## Configuration
 
@@ -89,8 +87,9 @@ Alternatively set absolute `stateFile` / `tasksFile` paths in the plugin config.
 
 | Key | Description |
 |-----|-------------|
-| `stateFile` | Absolute path to `state.json`. Default: `<agent-workspace>/tamagi/state.json` |
-| `tasksFile` | Absolute path to `tasks.json`. Default: `<agent-workspace>/tamagi/tasks.json` |
+| `agent` | Agent name used when no context is available (terminal CLI). Default: `main`. |
+| `stateFile` | Absolute path to `state.json`. Default: `<agent-workspace>/tamagi/state.json` (CLI: `<workspace>/agents/<agent>/tamagi/state.json`) |
+| `tasksFile` | Absolute path to `tasks.json`. Default: `<agent-workspace>/tamagi/tasks.json` (CLI: `<workspace>/agents/<agent>/tamagi/tasks.json`) |
 
 `<agent-workspace>` is the calling agent's workspace (`ctx.workspaceDir`, e.g. `.../agents/eulrich`). Each agent uses its own `tamagi/` dir — nothing is shared.
 

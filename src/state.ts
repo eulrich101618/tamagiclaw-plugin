@@ -21,21 +21,20 @@ export type TamagiState = Record<NeedKey, number> & {
   last: Record<string, { at: string; action: string }>;
 };
 
-export function defaultStateFile(ctx?: { workspaceDir?: string }): string {
+export function defaultStateFile(ctx?: { workspaceDir?: string }, agent = "main"): string {
   if (ctx?.workspaceDir) {
     return path.join(ctx.workspaceDir, "tamagi", "state.json");
   }
-  // No ctx (terminal CLI): workspace unknown — pin via
-  // TAMAGICLAW_STATE env or stateFile plugin config.
-  return path.join(os.homedir(), ".openclaw", "workspace", "tamagi", "state.json");
+  // No ctx (terminal CLI): per-agent dir under the default workspace.
+  return path.join(os.homedir(), ".openclaw", "workspace", "agents", agent, "tamagi", "state.json");
 }
 
 function expandHome(p: string): string {
   return p.startsWith("~") ? path.join(os.homedir(), p.slice(1)) : p;
 }
 
-export function resolveStateFile(cfg?: { stateFile?: string }, ctx?: { workspaceDir?: string }): string {
-  const p = cfg?.stateFile || process.env.TAMAGICLAW_STATE || defaultStateFile(ctx);
+export function resolveStateFile(cfg?: { stateFile?: string; agent?: string }, ctx?: { workspaceDir?: string }): string {
+  const p = cfg?.stateFile || process.env.TAMAGICLAW_STATE || defaultStateFile(ctx, cfg?.agent);
   return expandHome(p);
 }
 

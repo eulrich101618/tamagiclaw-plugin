@@ -1,20 +1,19 @@
 import * as fs from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
-export function defaultTasksFile(ctx) {
+export function defaultTasksFile(ctx, agent = "main") {
     if (ctx?.workspaceDir) {
         return path.join(ctx.workspaceDir, "tamagi", "tasks.json");
     }
-    // No ctx (terminal CLI): workspace unknown — pin via
-    // TAMAGICLAW_TASKS env or tasksFile plugin config.
-    return path.join(os.homedir(), ".openclaw", "workspace", "tamagi", "tasks.json");
+    // No ctx (terminal CLI): per-agent dir under the default workspace.
+    return path.join(os.homedir(), ".openclaw", "workspace", "agents", agent, "tamagi", "tasks.json");
 }
 export function resolveTasksFile(cfg, ctx) {
     if (process.env.TAMAGICLAW_TASKS)
         return process.env.TAMAGICLAW_TASKS;
     if (cfg?.tasksFile)
         return cfg.tasksFile.startsWith("~") ? path.join(os.homedir(), cfg.tasksFile.slice(1)) : cfg.tasksFile;
-    return defaultTasksFile(ctx);
+    return defaultTasksFile(ctx, cfg?.agent);
 }
 export function loadDB(f) {
     try {

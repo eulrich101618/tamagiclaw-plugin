@@ -10,19 +10,18 @@ export const CMD_TO_KEY = {
     amused: "boredom",
 };
 const RATE_48H = 100.0 / 48.0;
-export function defaultStateFile(ctx) {
+export function defaultStateFile(ctx, agent = "main") {
     if (ctx?.workspaceDir) {
         return path.join(ctx.workspaceDir, "tamagi", "state.json");
     }
-    // No ctx (terminal CLI): workspace unknown — pin via
-    // TAMAGICLAW_STATE env or stateFile plugin config.
-    return path.join(os.homedir(), ".openclaw", "workspace", "tamagi", "state.json");
+    // No ctx (terminal CLI): per-agent dir under the default workspace.
+    return path.join(os.homedir(), ".openclaw", "workspace", "agents", agent, "tamagi", "state.json");
 }
 function expandHome(p) {
     return p.startsWith("~") ? path.join(os.homedir(), p.slice(1)) : p;
 }
 export function resolveStateFile(cfg, ctx) {
-    const p = cfg?.stateFile || process.env.TAMAGICLAW_STATE || defaultStateFile(ctx);
+    const p = cfg?.stateFile || process.env.TAMAGICLAW_STATE || defaultStateFile(ctx, cfg?.agent);
     return expandHome(p);
 }
 function nowIso() {

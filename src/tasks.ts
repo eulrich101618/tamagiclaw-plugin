@@ -9,19 +9,18 @@ export type Task = {
 };
 type DB = { time_slots?: { tag: string; start: number; end: number }[]; tasks: Task[] };
 
-export function defaultTasksFile(ctx?: { workspaceDir?: string }): string {
+export function defaultTasksFile(ctx?: { workspaceDir?: string }, agent = "main"): string {
   if (ctx?.workspaceDir) {
     return path.join(ctx.workspaceDir, "tamagi", "tasks.json");
   }
-  // No ctx (terminal CLI): workspace unknown — pin via
-  // TAMAGICLAW_TASKS env or tasksFile plugin config.
-  return path.join(os.homedir(), ".openclaw", "workspace", "tamagi", "tasks.json");
+  // No ctx (terminal CLI): per-agent dir under the default workspace.
+  return path.join(os.homedir(), ".openclaw", "workspace", "agents", agent, "tamagi", "tasks.json");
 }
 
-export function resolveTasksFile(cfg?: { tasksFile?: string }, ctx?: { workspaceDir?: string }): string {
+export function resolveTasksFile(cfg?: { tasksFile?: string; agent?: string }, ctx?: { workspaceDir?: string }): string {
   if (process.env.TAMAGICLAW_TASKS) return process.env.TAMAGICLAW_TASKS;
   if (cfg?.tasksFile) return cfg.tasksFile.startsWith("~") ? path.join(os.homedir(), cfg.tasksFile.slice(1)) : cfg.tasksFile;
-  return defaultTasksFile(ctx);
+  return defaultTasksFile(ctx, cfg?.agent);
 }
 
 export function loadDB(f: string): DB {
