@@ -13,15 +13,8 @@ export function defaultTasksFile(ctx?: { workspaceDir?: string }): string {
   if (ctx?.workspaceDir) {
     return path.join(ctx.workspaceDir, "tamagi", "tasks.json");
   }
-  // No ctx (slash-command without workspace, terminal CLI):
-  // single-agent hosts auto-resolve to agents/*/tamagi/tasks.json.
-  try {
-    const dir = path.join(os.homedir(), ".openclaw", "workspace", "agents");
-    const hits = fs.readdirSync(dir)
-      .map((n) => path.join(dir, n, "tamagi", "tasks.json"))
-      .filter((f) => fs.existsSync(f));
-    if (hits.length === 1) return hits[0];
-  } catch { /* fall through */ }
+  // No ctx (terminal CLI): workspace unknown — pin via
+  // TAMAGICLAW_TASKS env or tasksFile plugin config.
   return path.join(os.homedir(), ".openclaw", "workspace", "tamagi", "tasks.json");
 }
 

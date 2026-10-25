@@ -73,6 +73,16 @@ openclaw tamagi task run <id>
 openclaw tamagi task help
 ```
 
+The terminal CLI has no agent context, so it cannot know your workspace.
+Pin it with env vars (a workspace can live anywhere):
+
+```bash
+export TAMAGICLAW_STATE="$HOME/my-workspace/tamagi/state.json"
+export TAMAGICLAW_TASKS="$HOME/my-workspace/tamagi/tasks.json"
+```
+
+Alternatively set absolute `stateFile` / `tasksFile` paths in the plugin config.
+
 ## Configuration
 
 `openclaw.plugin.json` options (all optional):

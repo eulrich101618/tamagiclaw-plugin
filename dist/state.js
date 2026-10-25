@@ -14,17 +14,8 @@ export function defaultStateFile(ctx) {
     if (ctx?.workspaceDir) {
         return path.join(ctx.workspaceDir, "tamagi", "state.json");
     }
-    // No ctx (slash-command without workspace, terminal CLI):
-    // single-agent hosts auto-resolve to agents/*/tamagi/state.json.
-    try {
-        const dir = path.join(os.homedir(), ".openclaw", "workspace", "agents");
-        const hits = fs.readdirSync(dir)
-            .map((n) => path.join(dir, n, "tamagi", "state.json"))
-            .filter((f) => fs.existsSync(f));
-        if (hits.length === 1)
-            return hits[0];
-    }
-    catch { /* fall through */ }
+    // No ctx (terminal CLI): workspace unknown — pin via
+    // TAMAGICLAW_STATE env or stateFile plugin config.
     return path.join(os.homedir(), ".openclaw", "workspace", "tamagi", "state.json");
 }
 function expandHome(p) {
