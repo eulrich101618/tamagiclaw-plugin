@@ -63,25 +63,10 @@ npm run build
 
 Each reset command and each `task` subcommand supports `help`, e.g. `/tamagi did help`.
 
-## CLI
-
-```bash
-openclaw tamagi status
-openclaw tamagi did "went for a walk"
-openclaw tamagi task list
-openclaw tamagi task run <id>
-openclaw tamagi task help
-```
-
 `<agent-workspace>` is the agent's own workspace: from tool context when
 available, else from the gateway roster (`agents.entries.<id>.workspace`).
-The terminal CLI has no context, so it uses the `agent` parameter
-(default: `main`) for the roster lookup:
-
-```bash
-openclaw tamagi status
-TAMAGICLAW_AGENT=other openclaw tamagi status
-```
+Without tool context the `agent` parameter (default: `main`) selects the
+roster entry (`TAMAGICLAW_AGENT` overrides it).
 
 Absolute overrides: `TAMAGICLAW_STATE` / `TAMAGICLAW_TASKS` env vars or
 `stateFile` / `tasksFile` in the plugin config.
@@ -92,7 +77,7 @@ Absolute overrides: `TAMAGICLAW_STATE` / `TAMAGICLAW_TASKS` env vars or
 
 | Key | Description |
 |-----|-------------|
-| `agent` | Agent id from the gateway roster, used only without tool context (terminal CLI). Default: `main`. |
+| `agent` | Agent id from the gateway roster, used only without tool context. Default: `main`. |
 | `stateFile` | Absolute path to `state.json`. Default: `<agent-workspace>/tamagi/state.json` |
 | `tasksFile` | Absolute path to `tasks.json`. Default: `<agent-workspace>/tamagi/tasks.json` |
 
