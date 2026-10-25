@@ -50,6 +50,24 @@ export function resolveStateFile(cfg, ctx) {
 function nowIso() {
     return new Date().toISOString();
 }
+export function fmtStamp(d = new Date()) {
+    const p = (n) => String(n).padStart(2, "0");
+    return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;
+}
+export function fmtLogLine(line) {
+    if (/^\d{4}-\d{2}-\d{2} \d{2}:\d{2} /.test(line))
+        return line;
+    const m = line.match(/^(\S+)\s+([\s\S]*)$/);
+    if (!m)
+        return line;
+    const t = Date.parse(m[1]);
+    if (!Number.isFinite(t))
+        return line;
+    return `${fmtStamp(new Date(t))} ${m[2]}`;
+}
+export function fmtLog(lines) {
+    return lines.map(fmtLogLine);
+}
 function clamp(v) {
     return Math.max(0, Math.min(100, Math.round(Number(v) * 10) / 10));
 }
@@ -123,7 +141,7 @@ export function doReset(s, cmd, action) {
         throw new Error(`missing description: tamagi ${cmd} "Handlung"`);
     s[key] = 0;
     s.last[key] = { at: nowIso(), action: a };
-    s.log = [...(s.log || []).slice(-49), `${nowIso()} ${cmd} — ${a}`];
+    s.log = [...(s.log || []).slice(-49), `${fmtStamp()} ${cmd} — ${a}`];
     return key;
 }
 export function loadAndTick(stateFile) {

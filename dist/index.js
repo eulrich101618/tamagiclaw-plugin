@@ -1,6 +1,6 @@
 import { Type } from "typebox";
 import { definePluginEntry } from "openclaw/plugin-sdk/plugin-entry";
-import { KEYS, CMD_TO_KEY, loadAndTick, saveState, resolveStateFile, moodLabel, worstKey, mood, doReset, } from "./state.js";
+import { KEYS, CMD_TO_KEY, loadAndTick, saveState, resolveStateFile, moodLabel, worstKey, mood, doReset, fmtLog, } from "./state.js";
 import { resolveTasksFile, splitTags, hbList, hbShow, hbRun, hbDone, hbAdd, hbEdit, } from "./tasks.js";
 function fmt(s) {
     const lines = KEYS.map((k) => `${k}: ${s[k]}%`);
@@ -94,7 +94,7 @@ export default definePluginEntry({
             async execute(_toolCallId, params, ctx) {
                 const s = read(ctx);
                 const n = Math.max(1, Math.min(50, Number(params.limit ?? 15)));
-                const lines = (s.log || []).slice(-n);
+                const lines = fmtLog((s.log || []).slice(-n));
                 return {
                     content: [{ type: "text", text: lines.join("\n") || "—" }],
                     details: { lines },
@@ -143,7 +143,7 @@ export default definePluginEntry({
                 if (sub === "log") {
                     if (rest[0] === "help" || rest[0] === "--help" || rest[0] === "-h")
                         return { text: HELP_LOG };
-                    return { text: (read(c).log || []).slice(-15).join("\n") || "—" };
+                    return { text: fmtLog((read(c).log || []).slice(-15)).join("\n") || "—" };
                 }
                 ;
                 if (sub in CMD_TO_KEY) {
@@ -222,7 +222,7 @@ export default definePluginEntry({
                 });
             }
             c.command("log").description("Recent actions").action(() => {
-                console.log((read().log || []).slice(-15).join("\n") || "—");
+                console.log(fmtLog((read().log || []).slice(-15)).join("\n") || "—");
             });
         }, { descriptors: [{ name: "tamagi", description: "Tamagiclaw state and tasks", hasSubcommands: true }] });
     },

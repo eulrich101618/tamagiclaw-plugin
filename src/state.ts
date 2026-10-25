@@ -67,6 +67,24 @@ function nowIso(): string {
   return new Date().toISOString();
 }
 
+export function fmtStamp(d = new Date()): string {
+  const p = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;
+}
+
+export function fmtLogLine(line: string): string {
+  if (/^\d{4}-\d{2}-\d{2} \d{2}:\d{2} /.test(line)) return line;
+  const m = line.match(/^(\S+)\s+([\s\S]*)$/);
+  if (!m) return line;
+  const t = Date.parse(m[1]);
+  if (!Number.isFinite(t)) return line;
+  return `${fmtStamp(new Date(t))} ${m[2]}`;
+}
+
+export function fmtLog(lines: string[]): string[] {
+  return lines.map(fmtLogLine);
+}
+
 function clamp(v: number): number {
   return Math.max(0, Math.min(100, Math.round(Number(v) * 10) / 10));
 }
@@ -132,7 +150,7 @@ export function doReset(s: TamagiState, cmd: string, action: string): NeedKey {
   if (!a) throw new Error(`missing description: tamagi ${cmd} "Handlung"`);
   s[key] = 0;
   s.last[key] = { at: nowIso(), action: a };
-  s.log = [...(s.log || []).slice(-49), `${nowIso()} ${cmd} — ${a}`];
+  s.log = [...(s.log || []).slice(-49), `${fmtStamp()} ${cmd} — ${a}`];
   return key;
 }
 

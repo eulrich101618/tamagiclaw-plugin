@@ -2,7 +2,7 @@ import { Type } from "typebox";
 import { definePluginEntry } from "openclaw/plugin-sdk/plugin-entry";
 import {
   KEYS, CMD_TO_KEY, loadAndTick, saveState, resolveStateFile,
-  moodLabel, worstKey, mood, doReset, type TamagiState,
+  moodLabel, worstKey, mood, doReset, fmtLog, type TamagiState,
 } from "./state.js";
 import {
   resolveTasksFile, splitTags, hbList, hbShow, hbRun, hbDone, hbAdd, hbEdit,
@@ -107,7 +107,7 @@ export default definePluginEntry({
       async execute(_toolCallId, params, ctx) {
         const s = read(ctx as Ctx);
         const n = Math.max(1, Math.min(50, Number((params as { limit?: number }).limit ?? 15)));
-        const lines = (s.log || []).slice(-n);
+        const lines = fmtLog((s.log || []).slice(-n));
         return {
           content: [{ type: "text", text: lines.join("\n") || "—" }],
           details: { lines },
@@ -151,7 +151,7 @@ export default definePluginEntry({
         if (sub === "help") return { text: HELP_MAIN };
         if (sub === "log") {
           if (rest[0] === "help" || rest[0] === "--help" || rest[0] === "-h") return { text: HELP_LOG };
-          return { text: (read(c).log || []).slice(-15).join("\n") || "—" };
+          return { text: fmtLog((read(c).log || []).slice(-15)).join("\n") || "—" };
         };
         if (sub in CMD_TO_KEY) {
           if (!action || action === "help" || action === "--help" || action === "-h") return { text: `Use: /tamagi ${sub} <what was done> — resets ${(CMD_TO_KEY as Record<string, string>)[sub]} to 0.` };
@@ -211,7 +211,7 @@ export default definePluginEntry({
           });
       }
       c.command("log").description("Recent actions").action(() => {
-        console.log((read().log || []).slice(-15).join("\n") || "—");
+        console.log(fmtLog((read().log || []).slice(-15)).join("\n") || "—");
       });
     }, { descriptors: [{ name: "tamagi", description: "Tamagiclaw state and tasks", hasSubcommands: true }] });
   },
