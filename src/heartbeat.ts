@@ -9,18 +9,18 @@ export type Task = {
 };
 type DB = { time_slots?: { tag: string; start: number; end: number }[]; tasks: Task[] };
 
-const DEFAULT_TASKS = path.join(os.homedir(), ".openclaw", "workspace", "github", "tamagiclaw", "tasks.json");
-const DASHBOARD_DIR = path.join(os.homedir(), ".openclaw", "workspace", "github", "task-dashboard");
+import { workspaceRootFromAgentDir } from "./state.js";
 
-export function resolveTasksFile(cfg?: { tasksFile?: string }): string {
-  const env = process.env.HEARTBEAT_TASKS;
-  if (env) return env;
+export function defaultTasksFile(ctx?: { workspaceDir?: string }): string {
+  if (ctx?.workspaceDir) {
+    return path.join(workspaceRootFromAgentDir(ctx.workspaceDir), "github", "tamagiclaw", "tamagi-tasks.json");
+  }
+  return path.join(os.homedir(), ".openclaw", "workspace", "github", "tamagiclaw", "tamagi-tasks.json");
+}
+
+export function resolveTasksFile(cfg?: { tasksFile?: string }, ctx?: { workspaceDir?: string }): string {
   if (cfg?.tasksFile) return cfg.tasksFile.startsWith("~") ? path.join(os.homedir(), cfg.tasksFile.slice(1)) : cfg.tasksFile;
-  try {
-    const c = JSON.parse(fs.readFileSync(path.join(DASHBOARD_DIR, "config.json"), "utf-8"));
-    if (c?.tasks_file) return c.tasks_file as string;
-  } catch { /* ignore */ }
-  return DEFAULT_TASKS;
+  return defaultTasksFile(ctx);
 }
 
 export function loadDB(f: string): DB {

@@ -10,15 +10,31 @@ export const CMD_TO_KEY = {
     amused: "boredom",
 };
 const RATE_48H = 100.0 / 48.0;
-export function defaultStateFile() {
+export function workspaceRootFromAgentDir(agentDir) {
+    const parts = agentDir.split(path.sep);
+    const i = parts.lastIndexOf("agents");
+    if (i > 0)
+        return parts.slice(0, i).join(path.sep) || path.sep;
+    return agentDir;
+}
+export function defaultStateFile(ctx) {
+    if (ctx?.workspaceDir) {
+        return path.join(workspaceRootFromAgentDir(ctx.workspaceDir), "github", "tamagiclaw", "state.json");
+    }
     return path.join(os.homedir(), ".openclaw", "workspace", "github", "tamagiclaw", "state.json");
 }
-export function defaultAgentFile() {
+export function defaultAgentFile(ctx) {
+    if (ctx?.workspaceDir) {
+        return path.join(workspaceRootFromAgentDir(ctx.workspaceDir), "github", "tamagiclaw", "agent.json");
+    }
     return path.join(os.homedir(), ".openclaw", "workspace", "github", "tamagiclaw", "agent.json");
 }
-export function resolveStateFile(cfg) {
-    const p = cfg?.stateFile || process.env.TAMAGICLAW_STATE || defaultStateFile();
+function expandHome(p) {
     return p.startsWith("~") ? path.join(os.homedir(), p.slice(1)) : p;
+}
+export function resolveStateFile(cfg, ctx) {
+    const p = cfg?.stateFile || process.env.TAMAGICLAW_STATE || defaultStateFile(ctx);
+    return expandHome(p);
 }
 function nowIso() {
     return new Date().toISOString();

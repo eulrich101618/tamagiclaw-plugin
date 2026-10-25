@@ -1,21 +1,17 @@
 import * as fs from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
-const DEFAULT_TASKS = path.join(os.homedir(), ".openclaw", "workspace", "github", "tamagiclaw", "tasks.json");
-const DASHBOARD_DIR = path.join(os.homedir(), ".openclaw", "workspace", "github", "task-dashboard");
-export function resolveTasksFile(cfg) {
-    const env = process.env.HEARTBEAT_TASKS;
-    if (env)
-        return env;
+import { workspaceRootFromAgentDir } from "./state.js";
+export function defaultTasksFile(ctx) {
+    if (ctx?.workspaceDir) {
+        return path.join(workspaceRootFromAgentDir(ctx.workspaceDir), "github", "tamagiclaw", "tamagi-tasks.json");
+    }
+    return path.join(os.homedir(), ".openclaw", "workspace", "github", "tamagiclaw", "tamagi-tasks.json");
+}
+export function resolveTasksFile(cfg, ctx) {
     if (cfg?.tasksFile)
         return cfg.tasksFile.startsWith("~") ? path.join(os.homedir(), cfg.tasksFile.slice(1)) : cfg.tasksFile;
-    try {
-        const c = JSON.parse(fs.readFileSync(path.join(DASHBOARD_DIR, "config.json"), "utf-8"));
-        if (c?.tasks_file)
-            return c.tasks_file;
-    }
-    catch { /* ignore */ }
-    return DEFAULT_TASKS;
+    return defaultTasksFile(ctx);
 }
 export function loadDB(f) {
     return JSON.parse(fs.readFileSync(f, "utf-8"));

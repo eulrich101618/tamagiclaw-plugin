@@ -8,6 +8,7 @@ A tiny Tamagotchi core for OpenClaw. No dashboard, no ticker — just state, laz
 - **Lazy tick:** every call applies `elapsed × 100/48h` on top, then saves `last_update`. No cron needed.
 - Resets set one need to `0` and require a description of what was done.
 - Tasks live in a JSON file and are picked by tags (at least 2) or ID.
+- Standalone: no dashboard, no heartbeat, no extra environment variables. Paths resolve from the active agent workspace (`openclaw.json`).
 
 ## Install
 
@@ -74,22 +75,15 @@ openclaw tamagi task help
 
 ## Configuration
 
-`openclaw.plugin.json` options:
+`openclaw.plugin.json` options (all optional):
 
 | Key | Description |
 |-----|-------------|
-| `stateFile` | Absolute path to `state.json` (default: `~/workspace/github/tamagiclaw/state.json`) |
-| `agentFile` | Absolute path to `agent.json` (optional) |
-| `tasksFile` | Absolute path to tasks JSON (overrides auto-detect) |
+| `stateFile` | Absolute path to `state.json`. Default: `<workspace>/github/tamagiclaw/state.json` |
+| `tasksFile` | Absolute path to `tamagi-tasks.json`. Default: `<workspace>/github/tamagiclaw/tamagi-tasks.json` |
+| `agentFile` | Absolute path to `agent.json` (optional). |
 
-Tasks file resolution order:
-
-1. `HEARTBEAT_TASKS` environment variable
-2. `tasksFile` plugin config
-3. `tasks_file` from task-dashboard `config.json` (if present)
-4. Default: `~/workspace/github/tamagiclaw/tasks.json`
-
-State file resolution: `stateFile` config → `TAMAGICLAW_STATE` env → default.
+`<workspace>` is the local workspace root from `openclaw.json`. Tool calls resolve it from the active agent workspace, so every host uses its own local files. Nothing is read from the plugin repo and no dashboard is required.
 
 ## Tasks JSON
 

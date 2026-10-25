@@ -46,18 +46,21 @@ export default definePluginEntry({
   description: "Tamagiclaw core (lazy tick, no dashboard)",
   register(api) {
     const cfg = (api.pluginConfig ?? {}) as { stateFile?: string; agentFile?: string; tasksFile?: string };
-    const stateFile = resolveStateFile(cfg);
-    const tasksFile = resolveTasksFile(cfg);
+    type Ctx = { workspaceDir?: string };
+    const statePath = (ctx?: Ctx) => resolveStateFile(cfg, ctx as { workspaceDir?: string });
+    const tasksPath = (ctx?: Ctx) => resolveTasksFile(cfg, ctx as { workspaceDir?: string });
 
-    const read = () => {
-      const s = loadAndTick(stateFile);
-      saveState(stateFile, s);
+    const read = (ctx?: Ctx) => {
+      const f = statePath(ctx);
+      const s = loadAndTick(f);
+      saveState(f, s);
       return s;
     };
-    const reset = (cmd: string, action: string) => {
-      const s = loadAndTick(stateFile);
+    const reset = (cmd: string, action: string, ctx?: Ctx) => {
+      const f = statePath(ctx);
+      const s = loadAndTick(f);
       doReset(s, cmd, action);
-      saveState(stateFile, s);
+      saveState(f, s);
       return s;
     };
 
@@ -66,8 +69,8 @@ export default definePluginEntry({
       label: "Tamagi status",
       description: "Show tamagiclaw state (lazy tick applied). Always call first.",
       parameters: Type.Object({}),
-      async execute(_toolCallId, _params) {
-        const s = read();
+      async execute(_toolCallId, _params, ctx) {
+        const s = read(ctx as Ctx);
         return {
           content: [{ type: "text", text: fmt(s) }],
           details: { ...s, mood: mood(s), mood_cause: worstKey(s) },
@@ -81,9 +84,9 @@ export default definePluginEntry({
         label: `Tamagi ${cmd}`,
         description: `Reset ${CMD_TO_KEY[cmd]} to 0 (description required).`,
         parameters: actionSchema,
-        async execute(_toolCallId, params) {
+        async execute(_toolCallId, params, ctx) {
           try {
-            const s = reset(cmd, (params as { action: string }).action);
+            const s = reset(cmd, (params as { action: string }).action, ctx as Ctx);
             return {
               content: [{ type: "text", text: `ok — ${fmt(s)}` }],
               details: { ...s, mood: mood(s), mood_cause: worstKey(s) },
@@ -101,8 +104,8 @@ export default definePluginEntry({
       label: "Tamagi log",
       description: "Recent tamagiclaw actions.",
       parameters: Type.Object({ limit: Type.Optional(Type.Number({ description: "Max lines (default 15)" })) }),
-      async execute(_toolCallId, params) {
-        const s = read();
+      async execute(_toolCallId, params, ctx) {
+        const s = read(ctx as Ctx);
         const n = Math.max(1, Math.min(50, Number((params as { limit?: number }).limit ?? 15)));
         const lines = (s.log || []).slice(-n);
         return {
@@ -112,24 +115,24 @@ export default definePluginEntry({
       },
     });
 
-    const hb = (fn: (f: string) => string) => {
-      try { return { text: fn(tasksFile) }; }
+    const hb = (ctx: Ctx | undefined, fn: (f: string) => string) => {
+      try { return { text: fn(tasksPath(ctx)) }; }
       catch (e) { return { text: String((e as Error)?.message ?? e) }; }
     };
-    const hbTools: { name: string; label: string; desc: string; params: Record<string, unknown>; run: (p: Record<string, unknown>) => string }[] = [
-      { name: "tamagi_task_list", label: "Task list", desc: "List heartbeat tasks, optionally filtered by tags.", params: { tags: Type.Optional(Type.String()) }, run: (p) => hbList(tasksFile, splitTags(String(p.tags ?? ""))) },
-      { name: "tamagi_task_show", label: "Task show", desc: "Show one heartbeat task as JSON.", params: { id: Type.String() }, run: (p) => hbShow(tasksFile, String(p.id)) },
-      { name: "tamagi_task_run", label: "Task run", desc: "Pick one heartbeat task by ID or at least 2 tags and mark it done.", params: { id: Type.Optional(Type.String()), tags: Type.Optional(Type.String()) }, run: (p) => hbRun(tasksFile, { id: p.id ? String(p.id) : undefined, tags: splitTags(String(p.tags ?? "")) }) },
-      { name: "tamagi_task_done", label: "Task done", desc: "Mark a heartbeat task as done.", params: { id: Type.String(), note: Type.Optional(Type.String()) }, run: (p) => hbDone(tasksFile, String(p.id), p.note ? String(p.note) : undefined) },
-      { name: "tamagi_task_add", label: "Task add", desc: "Create a heartbeat task with at least 2 existing tags.", params: { title: Type.String(), tags: Type.String(), detail: Type.Optional(Type.String()), priority: Type.Optional(Type.String()), id: Type.Optional(Type.String()) }, run: (p) => hbAdd(tasksFile, { title: String(p.title), detail: p.detail ? String(p.detail) : "", tags: splitTags(String(p.tags)), priority: p.priority ? String(p.priority) : undefined, id: p.id ? String(p.id) : undefined }) },
-      { name: "tamagi_task_edit", label: "Task edit", desc: "Edit title, detail, tags, priority or active flag of a heartbeat task.", params: { id: Type.String(), title: Type.Optional(Type.String()), detail: Type.Optional(Type.String()), tags: Type.Optional(Type.String()), priority: Type.Optional(Type.String()), active: Type.Optional(Type.Boolean()) }, run: (p) => hbEdit(tasksFile, String(p.id), { title: p.title ? String(p.title) : undefined, detail: p.detail ? String(p.detail) : undefined, tags: p.tags ? splitTags(String(p.tags)) : undefined, priority: p.priority ? String(p.priority) : undefined, active: p.active as boolean | undefined }) },
+    const hbTools: { name: string; label: string; desc: string; params: Record<string, unknown>; run: (f: string, p: Record<string, unknown>) => string }[] = [
+      { name: "tamagi_task_list", label: "Task list", desc: "List tasks, optionally filtered by tags.", params: { tags: Type.Optional(Type.String()) }, run: (f, p) => hbList(f, splitTags(String(p.tags ?? ""))) },
+      { name: "tamagi_task_show", label: "Task show", desc: "Show one task as JSON.", params: { id: Type.String() }, run: (f, p) => hbShow(f, String(p.id)) },
+      { name: "tamagi_task_run", label: "Task run", desc: "Pick one task by ID or at least 2 tags and mark it done.", params: { id: Type.Optional(Type.String()), tags: Type.Optional(Type.String()) }, run: (f, p) => hbRun(f, { id: p.id ? String(p.id) : undefined, tags: splitTags(String(p.tags ?? "")) }) },
+      { name: "tamagi_task_done", label: "Task done", desc: "Mark a task as done.", params: { id: Type.String(), note: Type.Optional(Type.String()) }, run: (f, p) => hbDone(f, String(p.id), p.note ? String(p.note) : undefined) },
+      { name: "tamagi_task_add", label: "Task add", desc: "Create a task with at least 2 existing tags.", params: { title: Type.String(), tags: Type.String(), detail: Type.Optional(Type.String()), priority: Type.Optional(Type.String()), id: Type.Optional(Type.String()) }, run: (f, p) => hbAdd(f, { title: String(p.title), detail: p.detail ? String(p.detail) : "", tags: splitTags(String(p.tags)), priority: p.priority ? String(p.priority) : undefined, id: p.id ? String(p.id) : undefined }) },
+      { name: "tamagi_task_edit", label: "Task edit", desc: "Edit title, detail, tags, priority or active flag of a task.", params: { id: Type.String(), title: Type.Optional(Type.String()), detail: Type.Optional(Type.String()), tags: Type.Optional(Type.String()), priority: Type.Optional(Type.String()), active: Type.Optional(Type.Boolean()) }, run: (f, p) => hbEdit(f, String(p.id), { title: p.title ? String(p.title) : undefined, detail: p.detail ? String(p.detail) : undefined, tags: p.tags ? splitTags(String(p.tags)) : undefined, priority: p.priority ? String(p.priority) : undefined, active: p.active as boolean | undefined }) },
     ];
     for (const t of hbTools) {
       api.registerTool({
         name: t.name, label: t.label, description: t.desc,
         parameters: Type.Object(t.params as never),
-        async execute(_toolCallId, params) {
-          const r = hb(() => t.run(params as Record<string, unknown>));
+        async execute(_toolCallId, params, ctx) {
+          const r = hb(ctx as Ctx, (f) => t.run(f, params as Record<string, unknown>));
           return { content: [{ type: "text", text: r.text }], details: { text: r.text } };
         },
       });
@@ -155,7 +158,7 @@ export default definePluginEntry({
           try { return { text: `ok — ${fmt(reset(sub, action))}` }; }
           catch (e) { return { text: String((e as Error)?.message ?? e) }; }
         }
-        if (sub === "task" || sub === "heartbeat") {
+        if (sub === "task") {
           const [hs, ...hrest] = rest;
           const harg = hrest.join(" ");
           const tags = splitTags(harg);
@@ -164,13 +167,13 @@ export default definePluginEntry({
           if (hs === "show" && (!hrest[0] || hrest[0] === "help")) return { text: "Use: /tamagi task show <id>" };
           if (hs === "run" && (!hrest[0] || hrest[0] === "help")) return { text: "Use: /tamagi task run <id> | <tag1> <tag2> [...] (at least 2 existing tags)" };
           if (hs === "done" && (!hrest[0] || hrest[0] === "help")) return { text: "Use: /tamagi task done <id> [note]" };
-          if (!hs || hs === "list") return hb((f) => hbList(f, tags));
-          if (hs === "show") return hb((f) => hbShow(f, hrest[0] ?? ""));
+          if (!hs || hs === "list") return hb(undefined, (f) => hbList(f, tags));
+          if (hs === "show") return hb(undefined, (f) => hbShow(f, hrest[0] ?? ""));
           if (hs === "run") {
-            if (hrest.length === 1 && !harg.includes(" ") && !harg.includes(",")) return hb((f) => hbRun(f, { id: hrest[0], tags: [] }));
-            return hb((f) => hbRun(f, { tags }));
+            if (hrest.length === 1 && !harg.includes(" ") && !harg.includes(",")) return hb(undefined, (f) => hbRun(f, { id: hrest[0], tags: [] }));
+            return hb(undefined, (f) => hbRun(f, { tags }));
           }
-          if (hs === "done") return hb((f) => hbDone(f, hrest[0] ?? "", hrest.slice(1).join(" ") || undefined));
+          if (hs === "done") return hb(undefined, (f) => hbDone(f, hrest[0] ?? "", hrest.slice(1).join(" ") || undefined));
           if (hs === "add") return { text: "Use: /tamagi task list|run|show|done (add/edit via tool)" };
           return { text: "Use: /tamagi task list|run|show|done" };
         }
@@ -181,16 +184,16 @@ export default definePluginEntry({
     api.registerCli(({ program }) => {
       const c = program.command("tamagi").description("Tamagiclaw core + tasks. Use 'tamagi help' for details.");
       c.command("help").description("Show help").action(() => console.log([HELP_MAIN, "", HELP_TASK].join("\n")));
-      const h = c.command("task").description("Heartbeat tasks. Use 'tamagi task help' for details.");
+      const h = c.command("task").description("Tasks. Use 'tamagi task help' for details.");
       h.command("help").description("Show task help").action(() => console.log(HELP_TASK));
-      h.command("list [tags...]").description("List tasks, optionally filtered by tags (AND)").action((tags: string[]) => console.log(hbList(tasksFile, splitTags(tags ?? []))));
-      h.command("show <id>").description("Show one task as JSON").action((id: string) => console.log(hbShow(tasksFile, id)));
+      h.command("list [tags...]").description("List tasks, optionally filtered by tags (AND)").action((tags: string[]) => console.log(hbList(tasksPath(undefined), splitTags(tags ?? []))));
+      h.command("show <id>").description("Show one task as JSON").action((id: string) => console.log(hbShow(tasksPath(undefined), id)));
       h.command("run [sel...]").description("Pick one task by ID or at least 2 tags and mark done").action((sel: string[]) => {
         const s = (sel ?? []).join(" ");
-        if ((sel ?? []).length === 1 && !s.includes(" ")) console.log(hbRun(tasksFile, { id: sel[0], tags: [] }));
-        else console.log(hbRun(tasksFile, { tags: splitTags(sel ?? []) }));
+        if ((sel ?? []).length === 1 && !s.includes(" ")) console.log(hbRun(tasksPath(undefined), { id: sel[0], tags: [] }));
+        else console.log(hbRun(tasksPath(undefined), { tags: splitTags(sel ?? []) }));
       });
-      h.command("done <id> [note...]").description("Mark a task as done").action((id: string, note: string[]) => console.log(hbDone(tasksFile, id, (note ?? []).join(" ") || undefined)));
+      h.command("done <id> [note...]").description("Mark a task as done").action((id: string, note: string[]) => console.log(hbDone(tasksPath(undefined), id, (note ?? []).join(" ") || undefined)));
       c.command("status").description("Show state").action(() => {
         console.log(fmt(read()));
       });
