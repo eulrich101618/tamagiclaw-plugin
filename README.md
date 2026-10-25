@@ -79,8 +79,8 @@ openclaw tamagi task help
 
 | Key | Description |
 |-----|-------------|
-| `stateFile` | Absolute path to `state.json`. Default: `<workspace>/github/tamagiclaw/state.json` |
-| `tasksFile` | Absolute path to `tamagi-tasks.json`. Default: `<workspace>/github/tamagiclaw/tamagi-tasks.json` |
+| `stateFile` | Absolute path to `state.json`. Default: `<workspace>/tamagi/state.json` |
+| `tasksFile` | Absolute path to `tasks.json`. Default: `<workspace>/tamagi/tasks.json` |
 | `agentFile` | Absolute path to `agent.json` (optional). |
 
 `<workspace>` is the local workspace root from `openclaw.json`. Tool calls resolve it from the active agent workspace, so every host uses its own local files. Nothing is read from the plugin repo and no dashboard is required.

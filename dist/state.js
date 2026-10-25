@@ -19,15 +19,15 @@ export function workspaceRootFromAgentDir(agentDir) {
 }
 export function defaultStateFile(ctx) {
     if (ctx?.workspaceDir) {
-        return path.join(workspaceRootFromAgentDir(ctx.workspaceDir), "github", "tamagiclaw", "state.json");
+        return path.join(workspaceRootFromAgentDir(ctx.workspaceDir), "tamagi", "state.json");
     }
-    return path.join(os.homedir(), ".openclaw", "workspace", "github", "tamagiclaw", "state.json");
+    return path.join(os.homedir(), ".openclaw", "workspace", "tamagi", "state.json");
 }
 export function defaultAgentFile(ctx) {
     if (ctx?.workspaceDir) {
-        return path.join(workspaceRootFromAgentDir(ctx.workspaceDir), "github", "tamagiclaw", "agent.json");
+        return path.join(workspaceRootFromAgentDir(ctx.workspaceDir), "tamagi", "agent.json");
     }
-    return path.join(os.homedir(), ".openclaw", "workspace", "github", "tamagiclaw", "agent.json");
+    return path.join(os.homedir(), ".openclaw", "workspace", "tamagi", "agent.json");
 }
 function expandHome(p) {
     return p.startsWith("~") ? path.join(os.homedir(), p.slice(1)) : p;

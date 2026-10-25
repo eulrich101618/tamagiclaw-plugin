@@ -13,9 +13,9 @@ import { workspaceRootFromAgentDir } from "./state.js";
 
 export function defaultTasksFile(ctx?: { workspaceDir?: string }): string {
   if (ctx?.workspaceDir) {
-    return path.join(workspaceRootFromAgentDir(ctx.workspaceDir), "github", "tamagiclaw", "tamagi-tasks.json");
+    return path.join(workspaceRootFromAgentDir(ctx.workspaceDir), "tamagi", "tasks.json");
   }
-  return path.join(os.homedir(), ".openclaw", "workspace", "github", "tamagiclaw", "tamagi-tasks.json");
+  return path.join(os.homedir(), ".openclaw", "workspace", "tamagi", "tasks.json");
 }
 
 export function resolveTasksFile(cfg?: { tasksFile?: string }, ctx?: { workspaceDir?: string }): string {
@@ -24,7 +24,19 @@ export function resolveTasksFile(cfg?: { tasksFile?: string }, ctx?: { workspace
 }
 
 export function loadDB(f: string): DB {
-  return JSON.parse(fs.readFileSync(f, "utf-8")) as DB;
+  try {
+    return JSON.parse(fs.readFileSync(f, "utf-8")) as DB;
+  } catch {
+    // auto-create workspace dir + file on first use
+    fs.mkdirSync(path.dirname(f), { recursive: true });
+    const empty: DB = { tasks: [] };
+    try { fs.writeFileSync(f, JSON.stringify(empty, null, 2) + "\n", { flag: "wx" }); } catch { /* exists */ }
+    try {
+      return JSON.parse(fs.readFileSync(f, "utf-8")) as DB;
+    } catch {
+      return empty;
+    }
+  }
 }
 export function saveDB(f: string, d: DB): void {
   fs.mkdirSync(path.dirname(f), { recursive: true });
