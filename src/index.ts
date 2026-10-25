@@ -213,6 +213,6 @@ export default definePluginEntry({
       c.command("log").description("Recent actions").action(() => {
         console.log((read().log || []).slice(-15).join("\n") || "—");
       });
-    });
+    }, { descriptors: [{ name: "tamagi", description: "Tamagiclaw state and tasks", hasSubcommands: true }] });
   },
 });
