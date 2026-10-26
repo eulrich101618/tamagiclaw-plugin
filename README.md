@@ -14,11 +14,10 @@ State and tasks for OpenClaw agents: five needs with lazy decay, plus a tag-base
 
 The main usecase is a heartbeat loop that picks one task per run, spread across the day:
 
-- `time_slots` divide the day into named windows (e.g. `Vormittag` 8–12, `Tag` 12–17, `Abend` 17–24, `Nacht` 0–8).
-- Each task carries at least 2 tags. One tag names its time slot, the other names the need it satisfies (`Tatendrang`, `Neugier`, `Ordnung`, `Gesellschaft`, `Langeweile`).
+- Each task carries at least 2 tags (e.g. `Morning` + `Order`, combining a time window with the need it satisfies).
 - Priorities: `urgent`, `high`, `medium`, `low`, `minor`.
-- Scoring: age in minutes (since `last_run`, never-run first) × priority weight. Highest score wins.
-- Per run: read status, list tasks, run one task via `tamagi_task_run` with the current slot tag + need tag, do the work, reset the matching need with a description, log the run.
+- Scoring: age in minutes (since `last_run`, never-run first) x priority weight. Highest score wins.
+- Per run: read status, list tasks, run one task via `tamagi_task_run` with 2 matching tags, do the work, reset the matching need with a description, log the run.
 
 This spreads chores, check-ins, and messages across the day without overlap: each run does something new, urgent items surface first, stale items bubble up automatically.
 
@@ -99,18 +98,12 @@ Absolute overrides: `TAMAGICLAW_STATE` / `TAMAGICLAW_TASKS` env vars or
 
 ```json
 {
-  "time_slots": [
-    { "tag": "Vormittag", "start": 8, "end": 12 },
-    { "tag": "Tag", "start": 12, "end": 17 },
-    { "tag": "Abend", "start": 17, "end": 24 },
-    { "tag": "Nacht", "start": 0, "end": 8 }
-  ],
   "tasks": [
     {
       "id": "my-task",
       "title": "My Task",
       "detail": "",
-      "tags": ["Vormittag", "Ordnung"],
+      "tags": ["Morning", "Order"],
       "priority": "medium",
       "last_run": null,
       "active": true
@@ -119,7 +112,7 @@ Absolute overrides: `TAMAGICLAW_STATE` / `TAMAGICLAW_TASKS` env vars or
 }
 ```
 
-Priorities: `urgent`, `high`, `medium`, `low`, `minor`. Scoring: age in minutes × weight (never-run first, then highest score).
+Priorities: `urgent`, `high`, `medium`, `low`, `minor`. Scoring: age in minutes x weight (never-run first, then highest score).
 
 ## Mood
 
