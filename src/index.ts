@@ -71,9 +71,10 @@ export default definePluginEntry({
       parameters: Type.Object({}),
       async execute(_toolCallId, _params, ctx) {
         const s = read(ctx as Ctx);
+        const { log: _omit, ...rest } = s;
         return {
           content: [{ type: "text", text: fmt(s) }],
-          details: { ...s, mood: mood(s), mood_cause: worstKey(s) },
+          details: { ...rest, mood: mood(s), mood_cause: worstKey(s) },
         };
       },
     });
@@ -106,7 +107,7 @@ export default definePluginEntry({
       parameters: Type.Object({ limit: Type.Optional(Type.Number({ description: "Max lines (default 15)" })) }),
       async execute(_toolCallId, params, ctx) {
         const s = read(ctx as Ctx);
-        const n = Math.max(1, Math.min(50, Number((params as { limit?: number }).limit ?? 15)));
+        const n = Math.max(1, Math.min(32, Number((params as { limit?: number }).limit ?? 15)));
         const lines = fmtLog((s.log || []).slice(-n));
         return {
           content: [{ type: "text", text: lines.join("\n") || "—" }],

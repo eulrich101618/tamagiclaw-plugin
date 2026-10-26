@@ -150,7 +150,7 @@ export function doReset(s: TamagiState, cmd: string, action: string): NeedKey {
   if (!a) throw new Error(`missing description: tamagi ${cmd} "Handlung"`);
   s[key] = 0;
   s.last[key] = { at: nowIso(), action: a };
-  s.log = [...(s.log || []).slice(-49), `${fmtStamp()} ${cmd} — ${a}`];
+  s.log = [...(s.log || []).slice(-31), `${fmtStamp()} ${cmd} — ${a}`];
   return key;
 }
 
