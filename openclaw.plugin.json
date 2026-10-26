@@ -50,7 +50,7 @@
  "description": "Tamagiclaw core + tasks (lazy tick, no dashboard)",
  "id": "tamagiclaw",
  "name": "Tamagiclaw",
- "version": "0.1.3",
+ "version": "0.1.4",
  "cliCommands": [
   {
    "name": "tamagi",
