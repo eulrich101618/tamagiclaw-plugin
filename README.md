@@ -8,7 +8,7 @@ State and tasks for OpenClaw agents: five needs with lazy decay, plus a tag-base
 - **Lazy tick:** every call applies `elapsed × 100/48h` on top, then saves `last_update`. No cron needed.
 - Resets set one need to `0` and require a description of what was done.
 - Tasks live in a JSON file and are picked by tags (at least 2) or ID.
-- Paths resolve from the active agent workspace (`openclaw.json`).
+- Paths resolve from the calling agent's workspace (`ctx.workspaceDir`, fallback `openclaw.json` roster).
 
 ## Heartbeat usecase: scheduled tasks with priorities
 
