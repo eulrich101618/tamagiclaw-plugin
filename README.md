@@ -1,6 +1,6 @@
 # Tamagiclaw Plugin 🦉
 
-A tiny Tamagotchi core for OpenClaw. No dashboard, no ticker — just state, lazy decay, and tasks.
+State and tasks for OpenClaw agents: five needs with lazy decay, plus a tag-based task pool.
 
 ## How it works
 
@@ -8,7 +8,19 @@ A tiny Tamagotchi core for OpenClaw. No dashboard, no ticker — just state, laz
 - **Lazy tick:** every call applies `elapsed × 100/48h` on top, then saves `last_update`. No cron needed.
 - Resets set one need to `0` and require a description of what was done.
 - Tasks live in a JSON file and are picked by tags (at least 2) or ID.
-- Standalone: no dashboard, no heartbeat, no extra environment variables. Paths resolve from the active agent workspace (`openclaw.json`).
+- Paths resolve from the active agent workspace (`openclaw.json`).
+
+## Heartbeat usecase: scheduled tasks with priorities
+
+The main usecase is a heartbeat loop that picks one task per run, spread across the day:
+
+- `time_slots` divide the day into named windows (e.g. `Vormittag` 8–12, `Tag` 12–17, `Abend` 17–24, `Nacht` 0–8).
+- Each task carries at least 2 tags. One tag names its time slot, the other names the need it satisfies (`Tatendrang`, `Neugier`, `Ordnung`, `Gesellschaft`, `Langeweile`).
+- Priorities: `urgent`, `high`, `medium`, `low`, `minor`.
+- Scoring: age in minutes (since `last_run`, never-run first) × priority weight. Highest score wins.
+- Per run: read status, list tasks, run one task via `tamagi_task_run` with the current slot tag + need tag, do the work, reset the matching need with a description, log the run.
+
+This spreads chores, check-ins, and messages across the day without overlap: each run does something new, urgent items surface first, stale items bubble up automatically.
 
 ## Install
 
@@ -87,12 +99,18 @@ Absolute overrides: `TAMAGICLAW_STATE` / `TAMAGICLAW_TASKS` env vars or
 
 ```json
 {
+  "time_slots": [
+    { "tag": "Vormittag", "start": 8, "end": 12 },
+    { "tag": "Tag", "start": 12, "end": 17 },
+    { "tag": "Abend", "start": 17, "end": 24 },
+    { "tag": "Nacht", "start": 0, "end": 8 }
+  ],
   "tasks": [
     {
       "id": "my-task",
       "title": "My Task",
       "detail": "",
-      "tags": ["Tag1", "Tag2"],
+      "tags": ["Vormittag", "Ordnung"],
       "priority": "medium",
       "last_run": null,
       "active": true
