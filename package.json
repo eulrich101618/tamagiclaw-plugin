@@ -1,6 +1,6 @@
 {
   "name": "openclaw-tamagiclaw",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "type": "module",
   "description": "Tamagiclaw core plugin (lazy tick, no dashboard)",
   "main": "./dist/index.js",

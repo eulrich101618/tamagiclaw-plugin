@@ -82,7 +82,7 @@ export default definePluginEntry({
                     }
                     catch (e) {
                         const text = String(e?.message ?? e);
-                        return { content: [{ type: "text", text }], details: { error: text } };
+                        return { content: [{ type: "text", text }], details: { error: true } };
                     }
                 },
             });
@@ -98,7 +98,7 @@ export default definePluginEntry({
                 const lines = fmtLog((s.log || []).slice(-n));
                 return {
                     content: [{ type: "text", text: lines.join("\n") || "—" }],
-                    details: { lines },
+                    details: { count: lines.length },
                 };
             },
         });
@@ -112,9 +112,7 @@ export default definePluginEntry({
         };
         const hbTools = [
             { name: "tamagi_task_list", label: "Task list", desc: "List tasks, optionally filtered by tags.", params: { tags: Type.Optional(Type.String()) }, run: (f, p) => hbList(f, splitTags(String(p.tags ?? ""))) },
-            { name: "tamagi_task_show", label: "Task show", desc: "Show one task as JSON.", params: { id: Type.String() }, run: (f, p) => hbShow(f, String(p.id)) },
             { name: "tamagi_task_run", label: "Task run", desc: "Pick one task by ID or at least 2 tags and mark it done.", params: { id: Type.Optional(Type.String()), tags: Type.Optional(Type.String()) }, run: (f, p) => hbRun(f, { id: p.id ? String(p.id) : undefined, tags: splitTags(String(p.tags ?? "")) }) },
-            { name: "tamagi_task_done", label: "Task done", desc: "Mark a task as done.", params: { id: Type.String(), note: Type.Optional(Type.String()) }, run: (f, p) => hbDone(f, String(p.id), p.note ? String(p.note) : undefined) },
             { name: "tamagi_task_add", label: "Task add", desc: "Create a task with at least 2 existing tags.", params: { title: Type.String(), tags: Type.String(), detail: Type.Optional(Type.String()), priority: Type.Optional(Type.String()), id: Type.Optional(Type.String()) }, run: (f, p) => hbAdd(f, { title: String(p.title), detail: p.detail ? String(p.detail) : "", tags: splitTags(String(p.tags)), priority: p.priority ? String(p.priority) : undefined, id: p.id ? String(p.id) : undefined }) },
             { name: "tamagi_task_edit", label: "Task edit", desc: "Edit title, detail, tags, priority or active flag of a task.", params: { id: Type.String(), title: Type.Optional(Type.String()), detail: Type.Optional(Type.String()), tags: Type.Optional(Type.String()), priority: Type.Optional(Type.String()), active: Type.Optional(Type.Boolean()) }, run: (f, p) => hbEdit(f, String(p.id), { title: p.title ? String(p.title) : undefined, detail: p.detail ? String(p.detail) : undefined, tags: p.tags ? splitTags(String(p.tags)) : undefined, priority: p.priority ? String(p.priority) : undefined, active: p.active }) },
         ];
@@ -124,7 +122,7 @@ export default definePluginEntry({
                 parameters: Type.Object(t.params),
                 async execute(_toolCallId, params, ctx) {
                     const r = hb(ctx, (f) => t.run(f, params));
-                    return { content: [{ type: "text", text: r.text }], details: { text: r.text } };
+                    return { content: [{ type: "text", text: r.text }], details: {} };
                 },
             });
         }
