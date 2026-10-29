@@ -96,7 +96,7 @@ export function pick(tasks: Task[], tags: string[], opts?: { minPriority?: strin
 export function fmtList(t: Task, s?: number | null, rank?: number, isNext?: boolean): string {
   const sc = s === undefined ? taskScore(t) : s;
   const tagStr = (t.tags ?? []).map((x) => `\`${x}\``).join(";") || "-";
-  const prefix = rank !== undefined ? `${rank}: ${isNext ? "▶ " : ""}` : isNext ? "▶ " : "- ";
+  const prefix = rank !== undefined ? `- ${rank}: ${isNext ? "▶ " : ""}` : isNext ? "▶ " : "- ";
   const pts = sc === null ? "" : ` · urgency-points: ${Math.round(sc)}`;
   return `${prefix}**${t.title}** — id: \`${t.id}\`${pts} · tags: ${tagStr}`;
 }

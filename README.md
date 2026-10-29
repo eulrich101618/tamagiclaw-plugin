@@ -67,8 +67,8 @@ npm run build
 `task list` renders a Markdown list, e.g.
 
 ```text
-30: **My Task** — id: `my-task` · urgency-points: 123 · tags: `Morning`;`Order`
-1: **Urgent Task** — id: `urgent-task` · urgency-points: 56160 · tags: `Morning`;`Order`
+- 30: **My Task** — id: `my-task` · urgency-points: 123 · tags: `Morning`;`Order`
+- 1: **Urgent Task** — id: `urgent-task` · urgency-points: 56160 · tags: `Morning`;`Order`
 ```
 
 Each `reset` and each `task` subcommand supports `help`, e.g. `/tamagi reset help`.
