@@ -16,7 +16,7 @@ The main usecase is a heartbeat loop that picks one task per run, spread across 
 
 - Each task carries at least 2 tags (e.g. `Morning` + `Order`, combining a time window with the need it satisfies).
 - Priorities: `urgent`, `high`, `medium`, `low`, `minor`.
-- Scoring: age in minutes (since `last_run`, never-run first) x priority weight. Highest score wins.
+- Due: age in minutes (since `last_run`, never-run first) x priority weight. Highest due wins (most overdue first).
 - Per run: read status, list tasks, run one task via `tamagi_task_run` with 2 matching tags, do the work, reset the matching need with a description, log the run.
 
 This spreads chores, check-ins, and messages across the day without overlap: each run does something new, urgent items surface first, stale items bubble up automatically.
@@ -43,8 +43,8 @@ npm run build
 | `tamagi_status` | Show state (lazy tick applied). Always call first. |
 | `tamagi_reset` | Reset one need to 0 (description required). Params: `need` (`drive\|curiosity\|disorder\|loneliness\|boredom`), `action` (what was done, past tense). |
 | `tamagi_log` | Recent actions. |
-| `tamagi_task_list` | List tasks, optionally filtered by tags. Markdown list, sorted by score. |
-| `tamagi_task_run` | Run top-score task (no args), or pick one by ID or at least 2 tags and mark it done. No args = no choice, always score-first. |
+| `tamagi_task_list` | List tasks, optionally filtered by tags. Numbered list, most overdue first, #1 marked ▶. |
+| `tamagi_task_run` | Run #1 (no args), or pick directly by ID, or by at least 2 tags. No args = no choice, always due-first. |
 | `tamagi_task_add` | Create a task with at least 2 existing tags. |
 | `tamagi_task_edit` | Edit title, detail, tags, priority or active flag. |
 
@@ -58,7 +58,7 @@ npm run build
 /tamagi log
 /tamagi task list [tag1 tag2 ...]
 /tamagi task show <id>
-/tamagi task run [<id> | <tag1> <tag2> ...]   (no args = top score)
+/tamagi task run [<id> | <tag1> <tag2> ...]   (no args = #1, most overdue)
 /tamagi task done <id> [note]
 /tamagi task help
 /tamagi help
@@ -67,7 +67,7 @@ npm run build
 `task list` renders a Markdown list, e.g.
 
 ```text
-- **My Task** — id: `my-task` · score: 123.4 · tags: `Morning`;`Order`
+1. ▶ **My Task** — id: `my-task` · due: 123.4 · tags: `Morning`;`Order`
 ```
 
 Each `reset` and each `task` subcommand supports `help`, e.g. `/tamagi reset help`.
@@ -88,7 +88,7 @@ openclaw tamagi reset <need> "what was done"
 openclaw tamagi log
 openclaw tamagi task list [tag1 tag2 ...]
 openclaw tamagi task show <id>
-openclaw tamagi task run [<id> | <tag1> <tag2> ...]   # no args = top score
+openclaw tamagi task run [<id> | <tag1> <tag2> ...]   # no args = #1, most overdue
 openclaw tamagi task done <id> [note]
 ```
 
@@ -124,7 +124,7 @@ All commands take positional args only, no flags. `task add`/`edit` are tools-on
 }
 ```
 
-Priorities: `urgent`, `high`, `medium`, `low`, `minor`. Scoring: age in minutes x weight (never-run first, then highest score).
+Priorities: `urgent`, `high`, `medium`, `low`, `minor`. Due = age in minutes x weight (never-run first as NEW, then highest due).
 
 ## Mood
 

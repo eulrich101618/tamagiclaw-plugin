@@ -100,10 +100,12 @@ export function pick(tasks, tags, opts) {
     return cand.map((t) => ({ t, s: score(t, now, PRIO_WEIGHTS) ?? 0 }))
         .sort((a, b) => b.s - a.s || a.t.id.localeCompare(b.t.id))[0].t;
 }
-export function fmtList(t, s) {
+export function fmtList(t, s, rank, isNext) {
     const sc = s === undefined ? taskScore(t) : s;
     const tagStr = (t.tags ?? []).map((x) => `\`${x}\``).join(";") || "-";
-    return `- **${t.title}** — id: \`${t.id}\` · score: ${sc === null ? "new" : sc.toFixed(1)} · tags: ${tagStr}`;
+    const due = sc === null ? "NEW" : sc.toFixed(1);
+    const prefix = rank !== undefined ? `${rank}. ${isNext ? "▶ " : ""}` : isNext ? "▶ " : "- ";
+    return `${prefix}**${t.title}** — id: \`${t.id}\` · due: ${due} · tags: ${tagStr}`;
 }
 export function fmtTask(t) {
     return `${t.title} (${t.id})\nDescription: ${t.detail || "-"}\nTags: ${(t.tags ?? []).join(" ")}`;
@@ -131,7 +133,10 @@ export function hbList(f, tags) {
             return 1;
         return b.s - a.s;
     });
-    return scored.map(({ t, s }) => fmtList(t, s)).join("\n") || "- No tasks.";
+    if (!scored.length)
+        return "- No tasks.";
+    const lines = scored.map(({ t, s }, i) => fmtList(t, s, i + 1, i === 0));
+    return `Next is #1 (highest due, most overdue first).\n${lines.join("\n")}`;
 }
 export function hbShow(f, id) {
     const t = loadDB(f).tasks.find((x) => x.id === id);
