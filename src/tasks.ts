@@ -100,7 +100,7 @@ export function pick(tasks: Task[], tags: string[], opts?: { minPriority?: strin
 }
 export function fmtList(t: Task, s?: number | null): string {
   const sc = s === undefined ? taskScore(t) : s;
-  return `id: ${t.id}; title: ${t.title}; tags: ${(t.tags ?? []).join(" ")}; prio: ${normPrio(t.priority)}; score: ${sc === null ? "neu" : sc.toFixed(1)}`;
+  return `- **${t.title}** (\`${t.id}\`) — tags: ${(t.tags ?? []).join(" ") || "-"} · prio: ${normPrio(t.priority)} · score: ${sc === null ? "new" : sc.toFixed(1)}`;
 }
 export function fmtTask(t: Task): string {
   return `${t.title} (${t.id})\nDescription: ${t.detail || "-"}\nTags: ${(t.tags ?? []).join(" ")}`;
@@ -124,7 +124,7 @@ export function hbList(f: string, tags: string[]): string {
     if (b.s === null) return 1;
     return b.s - a.s;
   });
-  return scored.map(({ t, s }) => fmtList(t, s)).join("\n") || "—";
+  return scored.map(({ t, s }) => fmtList(t, s)).join("\n") || "- No tasks.";
 }
 export function hbShow(f: string, id: string): string {
   const t = loadDB(f).tasks.find((x) => x.id === id);

@@ -102,7 +102,7 @@ export function pick(tasks, tags, opts) {
 }
 export function fmtList(t, s) {
     const sc = s === undefined ? taskScore(t) : s;
-    return `id: ${t.id}; title: ${t.title}; tags: ${(t.tags ?? []).join(" ")}; prio: ${normPrio(t.priority)}; score: ${sc === null ? "neu" : sc.toFixed(1)}`;
+    return `- **${t.title}** (\`${t.id}\`) — tags: ${(t.tags ?? []).join(" ") || "-"} · prio: ${normPrio(t.priority)} · score: ${sc === null ? "new" : sc.toFixed(1)}`;
 }
 export function fmtTask(t) {
     return `${t.title} (${t.id})\nDescription: ${t.detail || "-"}\nTags: ${(t.tags ?? []).join(" ")}`;
@@ -130,7 +130,7 @@ export function hbList(f, tags) {
             return 1;
         return b.s - a.s;
     });
-    return scored.map(({ t, s }) => fmtList(t, s)).join("\n") || "—";
+    return scored.map(({ t, s }) => fmtList(t, s)).join("\n") || "- No tasks.";
 }
 export function hbShow(f, id) {
     const t = loadDB(f).tasks.find((x) => x.id === id);

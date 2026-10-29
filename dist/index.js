@@ -19,7 +19,7 @@ const HELP_LOG = "Use: /tamagi log — shows the last 15 actions.";
 const HELP_TASK = [
     "Use: /tamagi task <sub> [args]",
     "",
-    "list [tags...] — List tasks, optionally filtered (AND). e.g. /tamagi task list Neugier Abend",
+    "list [tags...] — List tasks, optionally filtered (AND). e.g. /tamagi task list morning order",
     "show <id> — Show one task as JSON.",
     "run <id> | <tag1> <tag2> [...] — Pick one task by ID or at least 2 tags and mark it done.",
     "done <id> [note] — Mark a task as done.",
