@@ -126,17 +126,17 @@ export function hbList(f, tags) {
     const scored = tasks.map((t) => ({ t, s: score(t, now, PRIO_WEIGHTS) }));
     scored.sort((a, b) => {
         if (a.s === null && b.s === null)
-            return (PRIO_WEIGHTS[normPrio(b.t.priority)] ?? 1) - (PRIO_WEIGHTS[normPrio(a.t.priority)] ?? 1) || a.t.id.localeCompare(b.t.id);
+            return (PRIO_WEIGHTS[normPrio(a.t.priority)] ?? 1) - (PRIO_WEIGHTS[normPrio(b.t.priority)] ?? 1) || a.t.id.localeCompare(b.t.id);
         if (a.s === null)
-            return -1;
-        if (b.s === null)
             return 1;
-        return b.s - a.s;
+        if (b.s === null)
+            return -1;
+        return a.s - b.s;
     });
     if (!scored.length)
         return "- No tasks.";
-    const lines = scored.map(({ t, s }, i) => fmtList(t, s, i + 1, i === 0));
-    return `Next is #1 (highest due, most overdue first).\n${lines.join("\n")}`;
+    const lines = scored.map(({ t, s }, i) => fmtList(t, s, i + 1, i === scored.length - 1));
+    return `Last is next (most overdue last).\n${lines.join("\n")}`;
 }
 export function hbShow(f, id) {
     const t = loadDB(f).tasks.find((x) => x.id === id);
