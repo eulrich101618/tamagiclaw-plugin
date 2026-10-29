@@ -128,8 +128,8 @@ export function hbList(f, tags) {
     });
     if (!scored.length)
         return "- No tasks.";
-    const n = scored.length;
-    const lines = scored.map(({ t, s }, i) => fmtList(t, s, n - i, i === n - 1));
+    scored.sort((a, b) => (b.s ?? 0) - (a.s ?? 0));
+    const lines = scored.map(({ t, s }, i) => fmtList(t, s, i + 1, false));
     return `# **Descending to the highest priority.**\n${lines.join("\n")}`;
 }
 export function hbShow(f, id) {

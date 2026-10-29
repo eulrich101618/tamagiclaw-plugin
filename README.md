@@ -16,7 +16,7 @@ The main usecase is a heartbeat loop that picks one task per run, spread across 
 
 - Each task carries at least 2 tags (e.g. `Morning` + `Order`, combining a time window with the need it satisfies).
 - Priorities: `urgent`, `high`, `medium`, `low`, `minor`.
-- Due (urgency-points): age in minutes (since `last_run`, never-run first) x priority weight. Highest wins (most overdue last, marked ▶).
+- Urgency-points: waiting minutes (since `last_run`, never-run since `created`) x priority weight. Highest first.
 - Per run: read status, list tasks, run one task via `tamagi_task_run` with 2 matching tags, do the work, reset the matching need with a description, log the run.
 
 This spreads chores, check-ins, and messages across the day without overlap: each run does something new, urgent items surface first, stale items bubble up automatically.
@@ -68,7 +68,7 @@ npm run build
 
 ```text
 30. **My Task** — id: `my-task` · urgency-points: 123.4 · tags: `Morning`;`Order`
-1. ▶ **Urgent Task** — id: `urgent-task` · urgency-points: NEW · tags: `Morning`;`Order`
+1. **Urgent Task** — id: `urgent-task` · urgency-points: 56160 · tags: `Morning`;`Order`
 ```
 
 Each `reset` and each `task` subcommand supports `help`, e.g. `/tamagi reset help`.
@@ -125,7 +125,7 @@ All commands take positional args only, no flags. `task add`/`edit` are tools-on
 }
 ```
 
-Priorities: `urgent`, `high`, `medium`, `low`, `minor`. Due (urgency-points) = waiting minutes x weight (never-run first as NEW). List is ascending: least overdue first, #1 = NEXT = last line (recency: directly above your decision).
+Priorities: `urgent`, `high`, `medium`, `low`, `minor`. Urgency-points = waiting minutes x weight (never-run since `created`). List is descending: highest first.
 
 ## Mood
 
