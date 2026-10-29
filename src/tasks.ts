@@ -120,7 +120,7 @@ export function hbList(f: string, tags: string[]): string {
   const now = Date.now() / 1000;
   const scored = tasks.map((t) => ({ t, s: score(t, now, PRIO_WEIGHTS) }));
   scored.sort((a, b) => {
-    if (a.s === null && b.s === null) return a.t.id.localeCompare(b.t.id);
+    if (a.s === null && b.s === null) return (PRIO_WEIGHTS[normPrio(b.t.priority)] ?? 1) - (PRIO_WEIGHTS[normPrio(a.t.priority)] ?? 1) || a.t.id.localeCompare(b.t.id);
     if (a.s === null) return -1;
     if (b.s === null) return 1;
     return b.s - a.s;
@@ -138,6 +138,8 @@ export function hbRun(f: string, sel: { id?: string; tags: string[] }): string {
   if (sel.id) {
     t = d.tasks.find((x) => x.id === sel.id);
     if (!t) throw new Error(`not found: ${sel.id}`);
+  } else if (!sel.tags.length) {
+    t = pick(d.tasks, []);
   } else {
     if (sel.tags.length < 2) throw new Error("at least 2 tags required");
     const known = new Set(allTags(d.tasks));

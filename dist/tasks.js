@@ -124,7 +124,7 @@ export function hbList(f, tags) {
     const scored = tasks.map((t) => ({ t, s: score(t, now, PRIO_WEIGHTS) }));
     scored.sort((a, b) => {
         if (a.s === null && b.s === null)
-            return a.t.id.localeCompare(b.t.id);
+            return (PRIO_WEIGHTS[normPrio(b.t.priority)] ?? 1) - (PRIO_WEIGHTS[normPrio(a.t.priority)] ?? 1) || a.t.id.localeCompare(b.t.id);
         if (a.s === null)
             return -1;
         if (b.s === null)
@@ -146,6 +146,9 @@ export function hbRun(f, sel) {
         t = d.tasks.find((x) => x.id === sel.id);
         if (!t)
             throw new Error(`not found: ${sel.id}`);
+    }
+    else if (!sel.tags.length) {
+        t = pick(d.tasks, []);
     }
     else {
         if (sel.tags.length < 2)

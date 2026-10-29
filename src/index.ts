@@ -28,7 +28,7 @@ const HELP_TASK = [
   "",
   "list [tags...] — List tasks, optionally filtered (AND). e.g. /tamagi task list morning order",
   "show <id> — Show one task as JSON.",
-  "run <id> | <tag1> <tag2> [...] — Pick one task by ID or at least 2 tags and mark it done.",
+  "run [<id> | <tag1> <tag2> ...] — Run top-score task (no args), or pick by ID / at least 2 tags, and mark it done.",
   "done <id> [note] — Mark a task as done.",
   "add/edit — Via tool only (tamagi_task_add / tamagi_task_edit).",
   "help — This help.",
@@ -123,7 +123,7 @@ export default definePluginEntry({
     };
     const hbTools: { name: string; label: string; desc: string; params: Record<string, unknown>; run: (f: string, p: Record<string, unknown>) => string }[] = [
       { name: "tamagi_task_list", label: "Task list", desc: "List tasks, optionally filtered by tags.", params: { tags: Type.Optional(Type.String()) }, run: (f, p) => hbList(f, splitTags(String(p.tags ?? ""))) },
-      { name: "tamagi_task_run", label: "Task run", desc: "Pick one task by ID or at least 2 tags and mark it done.", params: { id: Type.Optional(Type.String()), tags: Type.Optional(Type.String()) }, run: (f, p) => hbRun(f, { id: p.id ? String(p.id) : undefined, tags: splitTags(String(p.tags ?? "")) }) },
+      { name: "tamagi_task_run", label: "Task run", desc: "Run top-score task (no args), or pick one by ID or at least 2 tags and mark it done.", params: { id: Type.Optional(Type.String()), tags: Type.Optional(Type.String()) }, run: (f, p) => hbRun(f, { id: p.id ? String(p.id) : undefined, tags: splitTags(String(p.tags ?? "")) }) },
       { name: "tamagi_task_add", label: "Task add", desc: "Create a task with at least 2 existing tags.", params: { title: Type.String(), tags: Type.String(), detail: Type.Optional(Type.String()), priority: Type.Optional(Type.String()), id: Type.Optional(Type.String()) }, run: (f, p) => hbAdd(f, { title: String(p.title), detail: p.detail ? String(p.detail) : "", tags: splitTags(String(p.tags)), priority: p.priority ? String(p.priority) : undefined, id: p.id ? String(p.id) : undefined }) },
       { name: "tamagi_task_edit", label: "Task edit", desc: "Edit title, detail, tags, priority or active flag of a task.", params: { id: Type.String(), title: Type.Optional(Type.String()), detail: Type.Optional(Type.String()), tags: Type.Optional(Type.String()), priority: Type.Optional(Type.String()), active: Type.Optional(Type.Boolean()) }, run: (f, p) => hbEdit(f, String(p.id), { title: p.title ? String(p.title) : undefined, detail: p.detail ? String(p.detail) : undefined, tags: p.tags ? splitTags(String(p.tags)) : undefined, priority: p.priority ? String(p.priority) : undefined, active: p.active as boolean | undefined }) },
     ];
@@ -169,7 +169,7 @@ export default definePluginEntry({
           if (!hs || hs === "help" || hs === "--help" || hs === "-h") return { text: HELP_TASK };
           if (hs === "list" && (harg === "help" || harg === "--help" || harg === "-h")) return { text: "Use: /tamagi task list [tag1 tag2 ...] — AND filter, at least 0 tags." };
           if (hs === "show" && (!hrest[0] || hrest[0] === "help")) return { text: "Use: /tamagi task show <id>" };
-          if (hs === "run" && (!hrest[0] || hrest[0] === "help")) return { text: "Use: /tamagi task run <id> | <tag1> <tag2> [...] (at least 2 existing tags)" };
+          if (hs === "run" && hrest[0] === "help") return { text: "Use: /tamagi task run [<id> | <tag1> <tag2> ...] — no args runs the top-score task." };
           if (hs === "done" && (!hrest[0] || hrest[0] === "help")) return { text: "Use: /tamagi task done <id> [note]" };
           if (!hs || hs === "list") return hb(c, (f) => hbList(f, tags));
           if (hs === "show") return hb(c, (f) => hbShow(f, hrest[0] ?? ""));
@@ -192,7 +192,7 @@ export default definePluginEntry({
       h.command("help").description("Show task help").action(() => console.log(HELP_TASK));
       h.command("list [tags...]").description("List tasks, optionally filtered by tags (AND)").action((tags: string[]) => console.log(hbList(tasksPath(undefined), splitTags(tags ?? []))));
       h.command("show <id>").description("Show one task as JSON").action((id: string) => console.log(hbShow(tasksPath(undefined), id)));
-      h.command("run [sel...]").description("Pick one task by ID or at least 2 tags and mark done").action((sel: string[]) => {
+      h.command("run [sel...]").description("Run top-score task (no args), or pick by ID / tags").action((sel: string[]) => {
         const s = (sel ?? []).join(" ");
         if ((sel ?? []).length === 1 && !s.includes(" ")) console.log(hbRun(tasksPath(undefined), { id: sel[0], tags: [] }));
         else console.log(hbRun(tasksPath(undefined), { tags: splitTags(sel ?? []) }));

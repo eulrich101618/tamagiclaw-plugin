@@ -44,7 +44,7 @@ npm run build
 | `tamagi_reset` | Reset one need to 0 (description required). Params: `need` (`drive\|curiosity\|disorder\|loneliness\|boredom`), `action` (what was done, past tense). |
 | `tamagi_log` | Recent actions. |
 | `tamagi_task_list` | List tasks, optionally filtered by tags. Markdown list, sorted by score. |
-| `tamagi_task_run` | Pick one task by ID or at least 2 tags and mark it done. |
+| `tamagi_task_run` | Run top-score task (no args), or pick one by ID or at least 2 tags and mark it done. No args = no choice, always score-first. |
 | `tamagi_task_add` | Create a task with at least 2 existing tags. |
 | `tamagi_task_edit` | Edit title, detail, tags, priority or active flag. |
 
@@ -58,7 +58,7 @@ npm run build
 /tamagi log
 /tamagi task list [tag1 tag2 ...]
 /tamagi task show <id>
-/tamagi task run <id> | <tag1> <tag2> [...]
+/tamagi task run [<id> | <tag1> <tag2> ...]   (no args = top score)
 /tamagi task done <id> [note]
 /tamagi task help
 /tamagi help
@@ -88,7 +88,7 @@ openclaw tamagi reset <need> "what was done"
 openclaw tamagi log
 openclaw tamagi task list [tag1 tag2 ...]
 openclaw tamagi task show <id>
-openclaw tamagi task run <id> | <tag1> <tag2> [...]
+openclaw tamagi task run [<id> | <tag1> <tag2> ...]   # no args = top score
 openclaw tamagi task done <id> [note]
 ```
 
