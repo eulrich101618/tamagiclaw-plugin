@@ -102,7 +102,8 @@ export function pick(tasks, tags, opts) {
 }
 export function fmtList(t, s) {
     const sc = s === undefined ? taskScore(t) : s;
-    return `- **${t.title}** — id: \`${t.id}\` · score: ${sc === null ? "new" : sc.toFixed(1)} · tags: ${(t.tags ?? []).join(" ") || "-"}`;
+    const tagStr = (t.tags ?? []).map((x) => `\`${x}\``).join(";") || "-";
+    return `- **${t.title}** — id: \`${t.id}\` · score: ${sc === null ? "new" : sc.toFixed(1)} · tags: ${tagStr}`;
 }
 export function fmtTask(t) {
     return `${t.title} (${t.id})\nDescription: ${t.detail || "-"}\nTags: ${(t.tags ?? []).join(" ")}`;

@@ -100,7 +100,8 @@ export function pick(tasks: Task[], tags: string[], opts?: { minPriority?: strin
 }
 export function fmtList(t: Task, s?: number | null): string {
   const sc = s === undefined ? taskScore(t) : s;
-  return `- **${t.title}** — id: \`${t.id}\` · score: ${sc === null ? "new" : sc.toFixed(1)} · tags: ${(t.tags ?? []).join(" ") || "-"}`;
+  const tagStr = (t.tags ?? []).map((x) => `\`${x}\``).join(";") || "-";
+  return `- **${t.title}** — id: \`${t.id}\` · score: ${sc === null ? "new" : sc.toFixed(1)} · tags: ${tagStr}`;
 }
 export function fmtTask(t: Task): string {
   return `${t.title} (${t.id})\nDescription: ${t.detail || "-"}\nTags: ${(t.tags ?? []).join(" ")}`;
