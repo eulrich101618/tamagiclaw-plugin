@@ -43,8 +43,8 @@ npm run build
 | `tamagi_status` | Show state (lazy tick applied). Always call first. |
 | `tamagi_reset` | Reset one need to 0 (description required). Params: `need` (`drive\|curiosity\|disorder\|loneliness\|boredom`), `action` (what was done, past tense). |
 | `tamagi_log` | Recent actions. |
-| `tamagi_task_list` | List tasks, optionally filtered by tags. Numbered list, most overdue last, last line marked ▶ NEXT. |
-| `tamagi_task_run` | Run NEXT (no args, = last list line), or pick directly by ID, or by at least 2 tags. |
+| `tamagi_task_list` | List tasks, optionally filtered by tags. Countdown `30:`→`1:` (`:` avoids Markdown list renumbering), most overdue last (#1). |
+| `tamagi_task_run` | Run top-score task (no args, = #1 = last list line), or pick directly by ID, or by at least 2 tags. |
 | `tamagi_task_add` | Create a task with at least 2 existing tags. |
 | `tamagi_task_edit` | Edit title, detail, tags, priority or active flag. |
 
@@ -58,7 +58,7 @@ npm run build
 /tamagi log
 /tamagi task list [tag1 tag2 ...]
 /tamagi task show <id>
-/tamagi task run [<id> | <tag1> <tag2> ...]   (no args = NEXT = last list line)
+/tamagi task run [<id> | <tag1> <tag2> ...]   (no args = #1 = last list line)
 /tamagi task done <id> [note]
 /tamagi task help
 /tamagi help
@@ -67,8 +67,8 @@ npm run build
 `task list` renders a Markdown list, e.g.
 
 ```text
-30. **My Task** — id: `my-task` · urgency-points: 123.4 · tags: `Morning`;`Order`
-1. **Urgent Task** — id: `urgent-task` · urgency-points: 56160 · tags: `Morning`;`Order`
+30: **My Task** — id: `my-task` · urgency-points: 123 · tags: `Morning`;`Order`
+1: **Urgent Task** — id: `urgent-task` · urgency-points: 56160 · tags: `Morning`;`Order`
 ```
 
 Each `reset` and each `task` subcommand supports `help`, e.g. `/tamagi reset help`.
@@ -89,7 +89,7 @@ openclaw tamagi reset <need> "what was done"
 openclaw tamagi log
 openclaw tamagi task list [tag1 tag2 ...]
 openclaw tamagi task show <id>
-openclaw tamagi task run [<id> | <tag1> <tag2> ...]   # no args = NEXT (last line)
+openclaw tamagi task run [<id> | <tag1> <tag2> ...]   # no args = #1 (last line)
 openclaw tamagi task done <id> [note]
 ```
 
