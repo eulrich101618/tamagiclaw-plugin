@@ -2,13 +2,6 @@ import * as fs from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
 export const KEYS = ["drive", "curiosity", "disorder", "loneliness", "boredom"];
-export const CMD_TO_KEY = {
-    did: "drive",
-    played: "curiosity",
-    cleaned: "disorder",
-    socialized: "loneliness",
-    amused: "boredom",
-};
 const RATE_48H = 100.0 / 48.0;
 function configDir() {
     return process.env.OPENCLAW_STATE_DIR || path.join(os.homedir(), ".openclaw");
@@ -132,16 +125,13 @@ export function mood(s) {
 export function moodLabel(s) {
     return `${mood(s)} (${worstKey(s)})`;
 }
-export function doReset(s, cmd, action) {
-    const key = CMD_TO_KEY[cmd];
-    if (!key)
-        throw new Error(`unknown reset: ${cmd}`);
+export function doResetKey(s, key, action) {
     const a = (action || "").trim();
     if (!a)
-        throw new Error(`missing description: tamagi ${cmd} "Handlung"`);
+        throw new Error(`missing description: tamagi reset ${key} "Handlung"`);
     s[key] = 0;
     s.last[key] = { at: nowIso(), action: a };
-    s.log = [...(s.log || []).slice(-31), `${fmtStamp()} ${cmd} — ${a}`];
+    s.log = [...(s.log || []).slice(-31), `${fmtStamp()} reset ${key} — ${a}`];
     return key;
 }
 export function loadAndTick(stateFile) {

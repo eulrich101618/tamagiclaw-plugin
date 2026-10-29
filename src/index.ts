@@ -1,8 +1,8 @@
 import { Type } from "typebox";
 import { definePluginEntry } from "openclaw/plugin-sdk/plugin-entry";
 import {
-  KEYS, CMD_TO_KEY, loadAndTick, saveState, resolveStateFile,
-  moodLabel, worstKey, mood, doReset, fmtLog, type TamagiState,
+  KEYS, loadAndTick, saveState, resolveStateFile,
+  moodLabel, worstKey, mood, doResetKey, fmtLog, type TamagiState, type NeedKey,
 } from "./state.js";
 import {
   resolveTasksFile, splitTags, hbList, hbShow, hbRun, hbDone, hbAdd, hbEdit,
@@ -13,17 +13,11 @@ function fmt(s: TamagiState): string {
   return `${lines.join(" | ")} — ${moodLabel(s)}`;
 }
 
-const actionSchema = Type.Object({ action: Type.String({ description: "What was done (past tense, required)" }) });
-
 const HELP_MAIN = [
   "Use: /tamagi <command> [args]",
   "",
   "status — Show state (lazy tick). Always call first.",
-  "did <text> — Reset drive to 0.",
-  "played <text> — Reset curiosity to 0.",
-  "cleaned <text> — Reset disorder to 0.",
-  "socialized <text> — Reset loneliness to 0.",
-  "amused <text> — Reset boredom to 0.",
+  "reset <need> <text> — Reset one need to 0. need: drive|curiosity|disorder|loneliness|boredom.",
   "log — Recent actions.",
   "task <sub> — Task list (see /tamagi task help).",
   "help — This help.",
@@ -56,10 +50,10 @@ export default definePluginEntry({
       saveState(f, s);
       return s;
     };
-    const reset = (cmd: string, action: string, ctx?: Ctx) => {
+    const resetKey = (key: string, action: string, ctx?: Ctx) => {
       const f = statePath(ctx);
       const s = loadAndTick(f);
-      doReset(s, cmd, action);
+      doResetKey(s, key as NeedKey, action);
       saveState(f, s);
       return s;
     };
@@ -79,26 +73,33 @@ export default definePluginEntry({
       },
     });
 
-    for (const cmd of Object.keys(CMD_TO_KEY)) {
-      api.registerTool({
-        name: `tamagi_${cmd}`,
-        label: `Tamagi ${cmd}`,
-        description: `Reset ${CMD_TO_KEY[cmd]} to 0 (description required).`,
-        parameters: actionSchema,
-        async execute(_toolCallId, params, ctx) {
-          try {
-            const s = reset(cmd, (params as { action: string }).action, ctx as Ctx);
-            return {
-              content: [{ type: "text", text: `ok — ${fmt(s)}` }],
-              details: { ...s, mood: mood(s), mood_cause: worstKey(s) },
-            };
-          } catch (e) {
-            const text = String((e as Error)?.message ?? e);
-            return { content: [{ type: "text", text }], details: { error: true } };
-          }
-        },
-      });
-    }
+    api.registerTool({
+      name: "tamagi_reset",
+      label: "Tamagi reset",
+      description: "Reset one need to 0 (description required).",
+      parameters: Type.Object({
+        need: Type.Union((KEYS as readonly string[]).map((k) => Type.Literal(k)) as never, { description: "One of drive|curiosity|disorder|loneliness|boredom" }),
+        action: Type.String({ description: "What was done (past tense, required)" }),
+      }),
+      async execute(_toolCallId, params, ctx) {
+        try {
+          const p = params as { need: string; action: string };
+          const raw = String(p.need ?? "").trim() as NeedKey;
+          if (!(KEYS as readonly string[]).includes(raw)) throw new Error(`unknown need: ${raw} (drive|curiosity|disorder|loneliness|boredom)`);
+          const f = statePath(ctx as Ctx);
+          const s = loadAndTick(f);
+          doResetKey(s, raw, p.action);
+          saveState(f, s);
+          return {
+            content: [{ type: "text", text: `ok — ${fmt(s)}` }],
+            details: { ...s, mood: mood(s), mood_cause: worstKey(s) },
+          };
+        } catch (e) {
+          const text = String((e as Error)?.message ?? e);
+          return { content: [{ type: "text", text }], details: { error: true } };
+        }
+      },
+    });
 
     api.registerTool({
       name: "tamagi_log",
@@ -139,7 +140,7 @@ export default definePluginEntry({
 
     api.registerCommand({
       name: "tamagi",
-      description: "Tamagiclaw: status | did | ... | log | task ...",
+      description: "Tamagiclaw: status | reset | log | task ...",
       acceptsArgs: true,
       async handler(ctx) {
         const raw = (ctx.args ?? "").trim();
@@ -152,10 +153,13 @@ export default definePluginEntry({
           if (rest[0] === "help" || rest[0] === "--help" || rest[0] === "-h") return { text: HELP_LOG };
           return { text: fmtLog((read(c).log || []).slice(-15)).join("\n") || "—" };
         };
-        if (sub in CMD_TO_KEY) {
-          if (!action || action === "help" || action === "--help" || action === "-h") return { text: `Use: /tamagi ${sub} <what was done> — resets ${(CMD_TO_KEY as Record<string, string>)[sub]} to 0.` };
-          if (!action) return { text: `Missing description. e.g. /tamagi ${sub} <what was done>` };
-          try { return { text: `ok — ${fmt(reset(sub, action, c))}` }; }
+        if (sub === "reset") {
+          const [need, ...arest] = rest;
+          const act = arest.join(" ");
+          if (!need || need === "help" || need === "--help" || need === "-h") return { text: "Use: /tamagi reset <need> <what was done> — need: drive|curiosity|disorder|loneliness|boredom." };
+          if (!(KEYS as readonly string[]).includes(need)) return { text: `unknown need: ${need} (drive|curiosity|disorder|loneliness|boredom)` };
+          if (!act) return { text: `Missing description. e.g. /tamagi reset ${need} <what was done>` };
+          try { return { text: `ok — ${fmt(resetKey(need, act, c))}` }; }
           catch (e) { return { text: String((e as Error)?.message ?? e) }; }
         }
         if (sub === "task") {
@@ -177,7 +181,7 @@ export default definePluginEntry({
           if (hs === "add") return { text: "Use: /tamagi task list|run|show|done (add/edit via tool)" };
           return { text: "Use: /tamagi task list|run|show|done" };
         }
-        return { text: "Use: /tamagi status | did | played | cleaned | socialized | amused | log | task ..." };
+        return { text: "Use: /tamagi status | reset | log | task ..." };
       },
     });
 
@@ -197,18 +201,16 @@ export default definePluginEntry({
       c.command("status").description("Show state").action(() => {
         console.log(fmt(read()));
       });
-      for (const cmd of Object.keys(CMD_TO_KEY)) {
-        c.command(cmd).description(`Reset ${CMD_TO_KEY[cmd]} to 0`)
-          .argument("<action...>", "What was done")
-          .action((parts: string[]) => {
-            try {
-              console.log(`ok — ${fmt(reset(cmd, parts.join(" ")))}`);
-            } catch (e) {
-              console.error(String((e as Error)?.message ?? e));
-              process.exit(1);
-            }
-          });
-      }
+      c.command("reset <need> <action...>").description("Reset one need to 0 (drive|curiosity|disorder|loneliness|boredom)")
+        .action((need: string, parts: string[]) => {
+          try {
+            if (!(KEYS as readonly string[]).includes(need)) throw new Error(`unknown need: ${need}`);
+            console.log(`ok — ${fmt(resetKey(need, parts.join(" ")))}`);
+          } catch (e) {
+            console.error(String((e as Error)?.message ?? e));
+            process.exit(1);
+          }
+        });
       c.command("log").description("Recent actions").action(() => {
         console.log(fmtLog((read().log || []).slice(-15)).join("\n") || "—");
       });

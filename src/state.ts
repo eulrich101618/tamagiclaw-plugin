@@ -5,14 +5,6 @@ import * as path from "node:path";
 export const KEYS = ["drive", "curiosity", "disorder", "loneliness", "boredom"] as const;
 export type NeedKey = (typeof KEYS)[number];
 
-export const CMD_TO_KEY: Record<string, NeedKey> = {
-  did: "drive",
-  played: "curiosity",
-  cleaned: "disorder",
-  socialized: "loneliness",
-  amused: "boredom",
-};
-
 const RATE_48H = 100.0 / 48.0;
 
 export type TamagiState = Record<NeedKey, number> & {
@@ -143,14 +135,12 @@ export function moodLabel(s: TamagiState): string {
   return `${mood(s)} (${worstKey(s)})`;
 }
 
-export function doReset(s: TamagiState, cmd: string, action: string): NeedKey {
-  const key = CMD_TO_KEY[cmd];
-  if (!key) throw new Error(`unknown reset: ${cmd}`);
+export function doResetKey(s: TamagiState, key: NeedKey, action: string): NeedKey {
   const a = (action || "").trim();
-  if (!a) throw new Error(`missing description: tamagi ${cmd} "Handlung"`);
+  if (!a) throw new Error(`missing description: tamagi reset ${key} "Handlung"`);
   s[key] = 0;
   s.last[key] = { at: nowIso(), action: a };
-  s.log = [...(s.log || []).slice(-31), `${fmtStamp()} ${cmd} — ${a}`];
+  s.log = [...(s.log || []).slice(-31), `${fmtStamp()} reset ${key} — ${a}`];
   return key;
 }
 
