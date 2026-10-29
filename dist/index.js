@@ -196,7 +196,7 @@ export default definePluginEntry({
                     if (hs === "delete")
                         return hb(c, (f) => hbDelete(f, hrest[0] ?? ""));
                     if (hs === "add")
-                        return { text: "Use: /tamagi task list|run|show|done (add/edit via tool)" };
+                        return { text: "Use: /tamagi task list|run|show|done|delete (add/edit/delete via tool)" };
                     return { text: "Use: /tamagi task list|run|show|done|delete" };
                 }
                 return { text: "Use: /tamagi status | reset | log | task ..." };

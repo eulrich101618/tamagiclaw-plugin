@@ -49,7 +49,7 @@ npm run build
 | `tamagi_task_edit` | Edit title, detail, tags, priority or active flag. |
 | `tamagi_task_delete` | Delete a task permanently. |
 
-`task show` / `task done` / `task delete` exist only as slash/CLI (`/tamagi task show|done|delete`, `tamagi task show|done|delete`), not as tools.
+`task show` / `task done` exist only as slash/CLI (`/tamagi task show|done`, `tamagi task show|done`), not as tools.
 
 ## Slash
 
