@@ -100,26 +100,12 @@ export function pick(tasks, tags, opts) {
     return cand.map((t) => ({ t, s: score(t, now, PRIO_WEIGHTS) ?? 0 }))
         .sort((a, b) => b.s - a.s || a.t.id.localeCompare(b.t.id))[0].t;
 }
-function humanWait(min) {
-    if (min < 1)
-        return "just now";
-    if (min < 60)
-        return `${Math.floor(min)}m`;
-    const h = min / 60;
-    if (h < 24)
-        return `${Math.floor(h)}h${Math.floor(min % 60) ? ` ${Math.floor(min % 60)}m` : ""}`;
-    const d = h / 24;
-    if (d < 30)
-        return `${Math.floor(d)}d${Math.floor(h % 24) ? ` ${Math.floor(h % 24)}h` : ""}`;
-    return `${Math.floor(d)}d`;
-}
 export function fmtList(t, s, rank, isNext) {
     const sc = s === undefined ? taskScore(t) : s;
     const tagStr = (t.tags ?? []).map((x) => `\`${x}\``).join(";") || "-";
-    const prio = normPrio(t.priority);
-    const due = sc === null ? "NEW" : `${humanWait(sc / (PRIO_WEIGHTS[prio] ?? 1))} waiting (${prio})`;
+    const pts = sc === null ? "NEW" : sc.toFixed(1);
     const prefix = rank !== undefined ? `${rank}. ${isNext ? "▶ " : ""}` : isNext ? "▶ " : "- ";
-    return `${prefix}**${t.title}** — id: \`${t.id}\` · due: ${due} · tags: ${tagStr}`;
+    return `${prefix}**${t.title}** — id: \`${t.id}\` · urgency-points: ${pts} · tags: ${tagStr}`;
 }
 export function fmtTask(t) {
     return `${t.title} (${t.id})\nDescription: ${t.detail || "-"}\nTags: ${(t.tags ?? []).join(" ")}`;
