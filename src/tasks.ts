@@ -67,12 +67,17 @@ const PRIO_MAP: Record<string, string> = {
 export const normPrio = (s?: string | null, dflt = "medium"): string =>
   PRIO_MAP[String(s ?? "").trim().toLowerCase()] ?? dflt;
 
-const DEFAULT_WEIGHTS: Record<string, number> = { urgent: 3, high: 1.5, medium: 1, low: 0.5, minor: 0.25 };
+export const PRIO_WEIGHTS: Record<string, number> = { urgent: 3, high: 1.5, medium: 1, low: 0.5, minor: 0.25 };
 const PRIO_RANK: Record<string, number> = { urgent: 0, high: 1, medium: 2, low: 3, minor: 4 };
 function parseTs(s?: string | null): number | null {
   if (!s) return null;
   const ts = Date.parse(s);
   return Number.isFinite(ts) ? ts / 1000 : null;
+}
+export function taskScore(t: Task, now = Date.now() / 1000): number | null {
+  const ts = parseTs(t.last_run);
+  if (ts === null) return null;
+  return ((now - ts) / 60) * (PRIO_WEIGHTS[normPrio(t.priority)] ?? 1);
 }
 function score(t: Task, now: number, w: Record<string, number>): number | null {
   const ts = parseTs(t.last_run);
@@ -88,13 +93,14 @@ export function pick(tasks: Task[], tags: string[], opts?: { minPriority?: strin
   if (!cand.length) throw new Error(`no task found (tags=${tags.join(" ")})`);
   const now = Date.now() / 1000;
   const nevers = cand.filter((t) => !t.last_run).sort((a, b) =>
-    (DEFAULT_WEIGHTS[normPrio(b.priority)] ?? 1) - (DEFAULT_WEIGHTS[normPrio(a.priority)] ?? 1) || a.id.localeCompare(b.id));
+    (PRIO_WEIGHTS[normPrio(b.priority)] ?? 1) - (PRIO_WEIGHTS[normPrio(a.priority)] ?? 1) || a.id.localeCompare(b.id));
   if (nevers.length) return nevers[0];
-  return cand.map((t) => ({ t, s: score(t, now, DEFAULT_WEIGHTS) ?? 0 }))
+  return cand.map((t) => ({ t, s: score(t, now, PRIO_WEIGHTS) ?? 0 }))
     .sort((a, b) => b.s - a.s || a.t.id.localeCompare(b.t.id))[0].t;
 }
-export function fmtList(t: Task): string {
-  return `id: ${t.id}; title: ${t.title}; tags: ${(t.tags ?? []).join(" ")}`;
+export function fmtList(t: Task, s?: number | null): string {
+  const sc = s === undefined ? taskScore(t) : s;
+  return `id: ${t.id}; title: ${t.title}; tags: ${(t.tags ?? []).join(" ")}; prio: ${normPrio(t.priority)}; score: ${sc === null ? "neu" : sc.toFixed(1)}`;
 }
 export function fmtTask(t: Task): string {
   return `${t.title} (${t.id})\nDescription: ${t.detail || "-"}\nTags: ${(t.tags ?? []).join(" ")}`;
@@ -111,14 +117,14 @@ export function hbList(f: string, tags: string[]): string {
   let tasks = d.tasks.filter((t) => t.active !== false);
   if (tags.length) tasks = tasks.filter((t) => tags.every((x) => (t.tags ?? []).includes(x)));
   const now = Date.now() / 1000;
-  tasks = [...tasks].sort((a, b) => {
-    const sa = score(a, now, DEFAULT_WEIGHTS), sb = score(b, now, DEFAULT_WEIGHTS);
-    if (sa === null && sb === null) return a.id.localeCompare(b.id);
-    if (sa === null) return -1;
-    if (sb === null) return 1;
-    return sb - sa;
+  const scored = tasks.map((t) => ({ t, s: score(t, now, PRIO_WEIGHTS) }));
+  scored.sort((a, b) => {
+    if (a.s === null && b.s === null) return a.t.id.localeCompare(b.t.id);
+    if (a.s === null) return -1;
+    if (b.s === null) return 1;
+    return b.s - a.s;
   });
-  return tasks.map(fmtList).join("\n") || "—";
+  return scored.map(({ t, s }) => fmtList(t, s)).join("\n") || "—";
 }
 export function hbShow(f: string, id: string): string {
   const t = loadDB(f).tasks.find((x) => x.id === id);

@@ -65,13 +65,19 @@ const PRIO_MAP = {
     urgent: "urgent", high: "high", medium: "medium", low: "low", minor: "minor",
 };
 export const normPrio = (s, dflt = "medium") => PRIO_MAP[String(s ?? "").trim().toLowerCase()] ?? dflt;
-const DEFAULT_WEIGHTS = { urgent: 3, high: 1.5, medium: 1, low: 0.5, minor: 0.25 };
+export const PRIO_WEIGHTS = { urgent: 3, high: 1.5, medium: 1, low: 0.5, minor: 0.25 };
 const PRIO_RANK = { urgent: 0, high: 1, medium: 2, low: 3, minor: 4 };
 function parseTs(s) {
     if (!s)
         return null;
     const ts = Date.parse(s);
     return Number.isFinite(ts) ? ts / 1000 : null;
+}
+export function taskScore(t, now = Date.now() / 1000) {
+    const ts = parseTs(t.last_run);
+    if (ts === null)
+        return null;
+    return ((now - ts) / 60) * (PRIO_WEIGHTS[normPrio(t.priority)] ?? 1);
 }
 function score(t, now, w) {
     const ts = parseTs(t.last_run);
@@ -88,14 +94,15 @@ export function pick(tasks, tags, opts) {
     if (!cand.length)
         throw new Error(`no task found (tags=${tags.join(" ")})`);
     const now = Date.now() / 1000;
-    const nevers = cand.filter((t) => !t.last_run).sort((a, b) => (DEFAULT_WEIGHTS[normPrio(b.priority)] ?? 1) - (DEFAULT_WEIGHTS[normPrio(a.priority)] ?? 1) || a.id.localeCompare(b.id));
+    const nevers = cand.filter((t) => !t.last_run).sort((a, b) => (PRIO_WEIGHTS[normPrio(b.priority)] ?? 1) - (PRIO_WEIGHTS[normPrio(a.priority)] ?? 1) || a.id.localeCompare(b.id));
     if (nevers.length)
         return nevers[0];
-    return cand.map((t) => ({ t, s: score(t, now, DEFAULT_WEIGHTS) ?? 0 }))
+    return cand.map((t) => ({ t, s: score(t, now, PRIO_WEIGHTS) ?? 0 }))
         .sort((a, b) => b.s - a.s || a.t.id.localeCompare(b.t.id))[0].t;
 }
-export function fmtList(t) {
-    return `id: ${t.id}; title: ${t.title}; tags: ${(t.tags ?? []).join(" ")}`;
+export function fmtList(t, s) {
+    const sc = s === undefined ? taskScore(t) : s;
+    return `id: ${t.id}; title: ${t.title}; tags: ${(t.tags ?? []).join(" ")}; prio: ${normPrio(t.priority)}; score: ${sc === null ? "neu" : sc.toFixed(1)}`;
 }
 export function fmtTask(t) {
     return `${t.title} (${t.id})\nDescription: ${t.detail || "-"}\nTags: ${(t.tags ?? []).join(" ")}`;
@@ -113,17 +120,17 @@ export function hbList(f, tags) {
     if (tags.length)
         tasks = tasks.filter((t) => tags.every((x) => (t.tags ?? []).includes(x)));
     const now = Date.now() / 1000;
-    tasks = [...tasks].sort((a, b) => {
-        const sa = score(a, now, DEFAULT_WEIGHTS), sb = score(b, now, DEFAULT_WEIGHTS);
-        if (sa === null && sb === null)
-            return a.id.localeCompare(b.id);
-        if (sa === null)
+    const scored = tasks.map((t) => ({ t, s: score(t, now, PRIO_WEIGHTS) }));
+    scored.sort((a, b) => {
+        if (a.s === null && b.s === null)
+            return a.t.id.localeCompare(b.t.id);
+        if (a.s === null)
             return -1;
-        if (sb === null)
+        if (b.s === null)
             return 1;
-        return sb - sa;
+        return b.s - a.s;
     });
-    return tasks.map(fmtList).join("\n") || "—";
+    return scored.map(({ t, s }) => fmtList(t, s)).join("\n") || "—";
 }
 export function hbShow(f, id) {
     const t = loadDB(f).tasks.find((x) => x.id === id);
