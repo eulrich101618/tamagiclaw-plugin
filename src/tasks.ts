@@ -90,9 +90,6 @@ export function pick(tasks: Task[], tags: string[], opts?: { minPriority?: strin
   }
   if (!cand.length) throw new Error(`no task found (tags=${tags.join(" ")})`);
   const now = Date.now() / 1000;
-  const nevers = cand.filter((t) => !t.last_run).sort((a, b) =>
-    (PRIO_WEIGHTS[normPrio(b.priority)] ?? 1) - (PRIO_WEIGHTS[normPrio(a.priority)] ?? 1) || a.id.localeCompare(b.id));
-  if (nevers.length) return nevers[0];
   return cand.map((t) => ({ t, s: score(t, now, PRIO_WEIGHTS) ?? 0 }))
     .sort((a, b) => b.s - a.s || a.t.id.localeCompare(b.t.id))[0].t;
 }
