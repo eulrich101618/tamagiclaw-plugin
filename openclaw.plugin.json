@@ -38,7 +38,8 @@
    "tamagi_task_list",
    "tamagi_task_run",
    "tamagi_task_add",
-   "tamagi_task_edit"
+   "tamagi_task_edit",
+   "tamagi_task_delete"
   ]
  },
  "description": "Tamagiclaw core + tasks (lazy tick, no dashboard)",
