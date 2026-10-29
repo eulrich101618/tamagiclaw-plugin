@@ -1,7 +1,7 @@
 import { Type } from "typebox";
 import { definePluginEntry } from "openclaw/plugin-sdk/plugin-entry";
 import { KEYS, loadAndTick, saveState, resolveStateFile, moodLabel, worstKey, mood, doResetKey, fmtLog, } from "./state.js";
-import { resolveTasksFile, splitTags, hbList, hbShow, hbRun, hbDone, hbAdd, hbEdit, } from "./tasks.js";
+import { resolveTasksFile, splitTags, hbList, hbShow, hbRun, hbDone, hbAdd, hbEdit, hbDelete, } from "./tasks.js";
 function fmt(s) {
     const lines = KEYS.map((k) => `${k}: ${s[k]}%`);
     return `${lines.join(" | ")} — ${moodLabel(s)}`;
@@ -22,7 +22,8 @@ const HELP_TASK = [
     "list [tags...] — List tasks, optionally filtered (AND). e.g. /tamagi task list morning order",
     "show <id> — Show one task as JSON.",
     "run [<id> | <tag1> <tag2> ...] — Run top-score task (no args), or pick by ID / at least 2 tags, and mark it done.",
-    "done <id> [note] — Mark a task as done.",
+    "done <id> [note] — Mark a task as done.,
+    "delete <id> — Delete a task permanently.",
     "add/edit — Via tool only (tamagi_task_add / tamagi_task_edit).",
     "help — This help.",
 ].join("\n");
@@ -118,6 +119,7 @@ export default definePluginEntry({
             { name: "tamagi_task_run", label: "Task run", desc: "Run top-score task (no args), or pick one by ID or at least 2 tags and mark it done.", params: { id: Type.Optional(Type.String()), tags: Type.Optional(Type.String()) }, run: (f, p) => hbRun(f, { id: p.id ? String(p.id) : undefined, tags: splitTags(String(p.tags ?? "")) }) },
             { name: "tamagi_task_add", label: "Task add", desc: "Create a task with at least 2 existing tags.", params: { title: Type.String(), tags: Type.String(), detail: Type.Optional(Type.String()), priority: Type.Optional(Type.String()), id: Type.Optional(Type.String()) }, run: (f, p) => hbAdd(f, { title: String(p.title), detail: p.detail ? String(p.detail) : "", tags: splitTags(String(p.tags)), priority: p.priority ? String(p.priority) : undefined, id: p.id ? String(p.id) : undefined }) },
             { name: "tamagi_task_edit", label: "Task edit", desc: "Edit title, detail, tags, priority or active flag of a task.", params: { id: Type.String(), title: Type.Optional(Type.String()), detail: Type.Optional(Type.String()), tags: Type.Optional(Type.String()), priority: Type.Optional(Type.String()), active: Type.Optional(Type.Boolean()) }, run: (f, p) => hbEdit(f, String(p.id), { title: p.title ? String(p.title) : undefined, detail: p.detail ? String(p.detail) : undefined, tags: p.tags ? splitTags(String(p.tags)) : undefined, priority: p.priority ? String(p.priority) : undefined, active: p.active }) },
+            { name: "tamagi_task_delete", label: "Task delete", desc: "Delete a task permanently.", params: { id: Type.String() }, run: (f, p) => hbDelete(f, String(p.id)) },
         ];
         for (const t of hbTools) {
             api.registerTool({
@@ -178,6 +180,8 @@ export default definePluginEntry({
                         return { text: "Use: /tamagi task run [<id> | <tag1> <tag2> ...] — no args runs the top-score task." };
                     if (hs === "done" && (!hrest[0] || hrest[0] === "help"))
                         return { text: "Use: /tamagi task done <id> [note]" };
+                    if (hs === "delete" && (!hrest[0] || hrest[0] === "help"))
+                        return { text: "Use: /tamagi task delete <id> — deletes permanently" };
                     if (!hs || hs === "list")
                         return hb(c, (f) => hbList(f, tags));
                     if (hs === "show")
@@ -189,9 +193,11 @@ export default definePluginEntry({
                     }
                     if (hs === "done")
                         return hb(c, (f) => hbDone(f, hrest[0] ?? "", hrest.slice(1).join(" ") || undefined));
+                    if (hs === "delete")
+                        return hb(c, (f) => hbDelete(f, hrest[0] ?? ""));
                     if (hs === "add")
                         return { text: "Use: /tamagi task list|run|show|done (add/edit via tool)" };
-                    return { text: "Use: /tamagi task list|run|show|done" };
+                    return { text: "Use: /tamagi task list|run|show|done|delete" };
                 }
                 return { text: "Use: /tamagi status | reset | log | task ..." };
             },
@@ -211,6 +217,7 @@ export default definePluginEntry({
                     console.log(hbRun(tasksPath(undefined), { tags: splitTags(sel ?? []) }));
             });
             h.command("done <id> [note...]").description("Mark a task as done").action((id, note) => console.log(hbDone(tasksPath(undefined), id, (note ?? []).join(" ") || undefined)));
+            h.command("delete <id>").description("Delete a task permanently").action((id) => console.log(hbDelete(tasksPath(undefined), id)));
             c.command("status").description("Show state").action(() => {
                 console.log(fmt(read()));
             });

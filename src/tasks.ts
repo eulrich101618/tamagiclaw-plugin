@@ -191,6 +191,14 @@ export function hbEdit(f: string, id: string, o: { title?: string; detail?: stri
   saveDB(f, d);
   return `ok ${id}`;
 }
+export function hbDelete(f: string, id: string): string {
+  const d = loadDB(f);
+  const i = d.tasks.findIndex((x) => x.id === id);
+  if (i < 0) throw new Error(`not found: ${id}`);
+  d.tasks.splice(i, 1);
+  saveDB(f, d);
+  return `deleted ${id}`;
+}
 export function hbSlots(f: string): string {
   const d = loadDB(f);
   return (d.time_slots ?? []).map((s) => `${s.tag}: ${s.start}-${s.end}h`).join("\n") || "—";

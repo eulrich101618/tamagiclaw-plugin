@@ -47,8 +47,9 @@ npm run build
 | `tamagi_task_run` | Run top-score task (no args, = #1 = last list line), or pick directly by ID, or by at least 2 tags. |
 | `tamagi_task_add` | Create a task with at least 2 existing tags. |
 | `tamagi_task_edit` | Edit title, detail, tags, priority or active flag. |
+| `tamagi_task_delete` | Delete a task permanently. |
 
-`task show` / `task done` exist only as slash/CLI (`/tamagi task show|done`, `tamagi task show|done`), not as tools.
+`task show` / `task done` / `task delete` exist only as slash/CLI (`/tamagi task show|done|delete`, `tamagi task show|done|delete`), not as tools.
 
 ## Slash
 
@@ -60,6 +61,7 @@ npm run build
 /tamagi task show <id>
 /tamagi task run [<id> | <tag1> <tag2> ...]   (no args = #1 = last list line)
 /tamagi task done <id> [note]
+/tamagi task delete <id>
 /tamagi task help
 /tamagi help
 ```
@@ -91,6 +93,7 @@ openclaw tamagi task list [tag1 tag2 ...]
 openclaw tamagi task show <id>
 openclaw tamagi task run [<id> | <tag1> <tag2> ...]   # no args = #1 (last line)
 openclaw tamagi task done <id> [note]
+openclaw tamagi task delete <id>
 ```
 
 All commands take positional args only, no flags. `task add`/`edit` are tools-only.
