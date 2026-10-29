@@ -67,7 +67,8 @@ npm run build
 `task list` renders a Markdown list, e.g.
 
 ```text
-30. ▶ **My Task** — id: `my-task` · due: 123.4 · tags: `Morning`;`Order`
+30. **My Task** — id: `my-task` · due: 2d 3h waiting (medium) · tags: `Morning`;`Order`
+1. ▶ **Urgent Task** — id: `urgent-task` · due: NEW · tags: `Morning`;`Order`
 ```
 
 Each `reset` and each `task` subcommand supports `help`, e.g. `/tamagi reset help`.
@@ -124,7 +125,7 @@ All commands take positional args only, no flags. `task add`/`edit` are tools-on
 }
 ```
 
-Priorities: `urgent`, `high`, `medium`, `low`, `minor`. Due = age in minutes x weight (never-run first as NEW, then highest due).
+Priorities: `urgent`, `high`, `medium`, `low`, `minor`. Due = waiting time since `last_run` with priority (`4d 3h (high)`, never-run first as NEW). List is ascending: least overdue first, #1 = NEXT = last line (recency: directly above your decision).
 
 ## Mood
 
