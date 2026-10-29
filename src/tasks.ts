@@ -75,13 +75,11 @@ function parseTs(s?: string | null): number | null {
   return Number.isFinite(ts) ? ts / 1000 : null;
 }
 export function taskScore(t: Task, now = Date.now() / 1000): number | null {
-  const ts = parseTs(t.last_run);
-  if (ts === null) return null;
+  const ts = parseTs(t.last_run) ?? parseTs(t.created) ?? 0;
   return ((now - ts) / 60) * (PRIO_WEIGHTS[normPrio(t.priority)] ?? 1);
 }
 function score(t: Task, now: number, w: Record<string, number>): number | null {
-  const ts = parseTs(t.last_run);
-  if (ts === null) return null;
+  const ts = parseTs(t.last_run) ?? parseTs(t.created) ?? 0;
   return ((now - ts) / 60) * (w[normPrio(t.priority)] ?? 1);
 }
 export function pick(tasks: Task[], tags: string[], opts?: { minPriority?: string }): Task {
@@ -130,7 +128,7 @@ export function hbList(f: string, tags: string[]): string {
   if (!scored.length) return "- No tasks.";
   const n = scored.length;
   const lines = scored.map(({ t, s }, i) => fmtList(t, s, n - i, i === n - 1));
-  return `Last is next (#1 = most overdue, directly above your decision).\n${lines.join("\n")}`;
+  return `# **Descending to the highest priority.**\n${lines.join("\n")}`;
 }
 export function hbShow(f: string, id: string): string {
   const t = loadDB(f).tasks.find((x) => x.id === id);
