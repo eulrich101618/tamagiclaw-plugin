@@ -22,7 +22,7 @@ const HELP_TASK = [
     "list [tags...] — List tasks, optionally filtered (AND). e.g. /tamagi task list morning order",
     "show <id> — Show one task as JSON.",
     "run [<id> | <tag1> <tag2> ...] — Run top-score task (no args), or pick by ID / at least 2 tags, and mark it done.",
-    "done <id> [note] — Mark a task as done.,
+    "done <id> [note] — Mark a task as done.",
     "delete <id> — Delete a task permanently.",
     "add/edit — Via tool only (tamagi_task_add / tamagi_task_edit).",
     "help — This help.",
