@@ -41,28 +41,20 @@ npm run build
 | Tool | Description |
 |------|-------------|
 | `tamagi_status` | Show state (lazy tick applied). Always call first. |
-| `tamagi_did` | Reset drive to 0 (description required). |
-| `tamagi_played` | Reset curiosity to 0 (description required). |
-| `tamagi_cleaned` | Reset disorder to 0 (description required). |
-| `tamagi_socialized` | Reset loneliness to 0 (description required). |
-| `tamagi_amused` | Reset boredom to 0 (description required). |
+| `tamagi_reset` | Reset one need to 0 (description required). Params: `need` (`drive\|curiosity\|disorder\|loneliness\|boredom`), `action` (what was done, past tense). |
 | `tamagi_log` | Recent actions. |
-| `tamagi_task_list` | List tasks, optionally filtered by tags. |
-| `tamagi_task_show` | Show one task as JSON. |
+| `tamagi_task_list` | List tasks, optionally filtered by tags. Markdown list, sorted by score. |
 | `tamagi_task_run` | Pick one task by ID or at least 2 tags and mark it done. |
-| `tamagi_task_done` | Mark a task as done. |
 | `tamagi_task_add` | Create a task with at least 2 existing tags. |
 | `tamagi_task_edit` | Edit title, detail, tags, priority or active flag. |
+
+`task show` / `task done` exist only as slash/CLI (`/tamagi task show|done`, `tamagi task show|done`), not as tools.
 
 ## Slash
 
 ```text
 /tamagi status
-/tamagi did <what was done>
-/tamagi played <what was done>
-/tamagi cleaned <what was done>
-/tamagi socialized <what was done>
-/tamagi amused <what was done>
+/tamagi reset <need> <what was done>   (need: drive|curiosity|disorder|loneliness|boredom)
 /tamagi log
 /tamagi task list [tag1 tag2 ...]
 /tamagi task show <id>
@@ -72,7 +64,13 @@ npm run build
 /tamagi help
 ```
 
-Each reset command and each `task` subcommand supports `help`, e.g. `/tamagi did help`.
+`task list` renders a Markdown list, e.g.
+
+```text
+- **My Task** — id: `my-task` · score: 123.4 · tags: `Morning`;`Order`
+```
+
+Each `reset` and each `task` subcommand supports `help`, e.g. `/tamagi reset help`.
 
 `<agent-workspace>` is the agent's own workspace: from tool context when
 available, else from the gateway roster (`agents.entries.<id>.workspace`).
@@ -81,6 +79,20 @@ roster entry (`TAMAGICLAW_AGENT` overrides it).
 
 Absolute overrides: `TAMAGICLAW_STATE` / `TAMAGICLAW_TASKS` env vars or
 `stateFile` / `tasksFile` in the plugin config.
+
+## CLI
+
+```bash
+openclaw tamagi status
+openclaw tamagi reset <need> "what was done"
+openclaw tamagi log
+openclaw tamagi task list [tag1 tag2 ...]
+openclaw tamagi task show <id>
+openclaw tamagi task run <id> | <tag1> <tag2> [...]
+openclaw tamagi task done <id> [note]
+```
+
+All commands take positional args only, no flags. `task add`/`edit` are tools-only.
 
 ## Configuration
 
