@@ -8,7 +8,7 @@ export type Task = {
   priority?: string; last_run?: string | null; created?: string;
   active?: boolean; last_note?: string;
 };
-type DB = { time_slots?: { tag: string; start: number; end: number }[]; tasks: Task[] };
+type DB = { tasks: Task[] };
 
 export function defaultTasksFile(ctx?: { workspaceDir?: string }, agent = "main"): string {
   const ws = ctx?.workspaceDir || agentWorkspace(agent);
@@ -198,8 +198,4 @@ export function hbDelete(f: string, id: string): string {
   d.tasks.splice(i, 1);
   saveDB(f, d);
   return `deleted ${id}`;
-}
-export function hbSlots(f: string): string {
-  const d = loadDB(f);
-  return (d.time_slots ?? []).map((s) => `${s.tag}: ${s.start}-${s.end}h`).join("\n") || "—";
 }

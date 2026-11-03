@@ -224,7 +224,3 @@ export function hbDelete(f, id) {
     saveDB(f, d);
     return `deleted ${id}`;
 }
-export function hbSlots(f) {
-    const d = loadDB(f);
-    return (d.time_slots ?? []).map((s) => `${s.tag}: ${s.start}-${s.end}h`).join("\n") || "—";
-}
