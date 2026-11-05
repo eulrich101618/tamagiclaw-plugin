@@ -137,10 +137,10 @@ export function moodLabel(s: TamagiState): string {
 
 export function doResetKey(s: TamagiState, key: NeedKey, action: string): NeedKey {
   const a = (action || "").trim();
-  if (!a) throw new Error(`missing description: tamagi reset ${key} "Handlung"`);
+  if (!a) throw new Error(`missing description: tamagi reset ${key} "what was done"`);
   const words = a.split(/\s+/).filter(Boolean);
-  if (words.length < 2) throw new Error(`action zu kurz (min. 2 Wörter): tamagi reset ${key} "Handlung"`);
-  if (/^reset$/i.test(a)) throw new Error(`action darf nicht nur "reset" sein: tamagi reset ${key} "Handlung"`);
+  if (words.length < 2) throw new Error(`action too short (min. 2 words): tamagi reset ${key} "what was done"`);
+  if (/^reset$/i.test(a)) throw new Error(`action must describe the work, not just "reset": tamagi reset ${key} "what was done"`);
   s[key] = 0;
   s.last[key] = { at: nowIso(), action: a };
   s.log = [...(s.log || []).slice(-31), `${fmtStamp()} reset ${key} — ${a}`];
