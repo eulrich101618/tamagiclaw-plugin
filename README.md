@@ -98,6 +98,14 @@ openclaw tamagi task delete <id>
 
 All commands take positional args only, no flags. `task add`/`edit` are tools-only.
 
+## Pro-Agent-Trennung (Tool-Factory)
+
+No global `stateFile`/`tasksFile`: every tool is registered as a **factory**
+(`api.registerTool((ctx) => …)`) that resolves paths **per call** from the
+tool context (`ctx.workspaceDir` → `<workspaceDir>/tamagi/*.json`). Each agent
+uses its own `tamagi/` dir — nothing is shared. Absolute `stateFile`/`tasksFile`
+config or `TAMAGICLAW_STATE`/`TAMAGICLAW_TASKS` env vars override per agent.
+
 ## Configuration
 
 `openclaw.plugin.json` options (all optional):

@@ -1,6 +1,6 @@
 import { Type } from "typebox";
 import { definePluginEntry } from "openclaw/plugin-sdk/plugin-entry";
-import { KEYS, loadAndTick, saveState, resolveStateFile, moodLabel, worstKey, mood, doResetKey, fmtLog, } from "./state.js";
+import { KEYS, loadAndTick, saveState, resolveStateFile, agentWorkspace, moodLabel, worstKey, mood, doResetKey, fmtLog, } from "./state.js";
 import { resolveTasksFile, splitTags, hbList, hbShow, hbRun, hbDone, hbAdd, hbEdit, hbDelete, } from "./tasks.js";
 function fmt(s) {
     const lines = KEYS.map((k) => `${k}: ${s[k]}%`);
@@ -33,8 +33,15 @@ export default definePluginEntry({
     description: "Tamagiclaw core (lazy tick, no dashboard)",
     register(api) {
         const cfg = (api.pluginConfig ?? {});
-        const statePath = (ctx) => resolveStateFile(cfg, ctx);
-        const tasksPath = (ctx) => resolveTasksFile(cfg, ctx);
+        // Pro-Agent-Auflösung: Factory-ctx > Command-agentId > cfg.agent > main
+        const effCtx = (ctx) => {
+            if (ctx?.workspaceDir)
+                return ctx;
+            const aid = ctx?.agentId || cfg.agent || "main";
+            return { workspaceDir: agentWorkspace(aid), agentId: aid };
+        };
+        const statePath = (ctx) => resolveStateFile(cfg, effCtx(ctx));
+        const tasksPath = (ctx) => resolveTasksFile(cfg, effCtx(ctx));
         const read = (ctx) => {
             const f = statePath(ctx);
             const s = loadAndTick(f);
@@ -48,21 +55,21 @@ export default definePluginEntry({
             saveState(f, s);
             return s;
         };
-        api.registerTool({
+        api.registerTool((toolCtx) => ({
             name: "tamagi_status",
             label: "Tamagi status",
             description: "Show tamagiclaw state (lazy tick applied). Always call first.",
             parameters: Type.Object({}),
-            async execute(_toolCallId, _params, ctx) {
-                const s = read(ctx);
+            async execute(_id, _params) {
+                const s = read(effCtx(toolCtx));
                 const { log: _omit, ...rest } = s;
                 return {
                     content: [{ type: "text", text: fmt(s) }],
                     details: { ...rest, mood: mood(s), mood_cause: worstKey(s) },
                 };
             },
-        });
-        api.registerTool({
+        }));
+        api.registerTool((toolCtx) => ({
             name: "tamagi_reset",
             label: "Tamagi reset",
             description: "Reset one need to 0 (description required).",
@@ -70,13 +77,14 @@ export default definePluginEntry({
                 need: Type.Union(KEYS.map((k) => Type.Literal(k)), { description: "One of drive|curiosity|disorder|loneliness|boredom" }),
                 action: Type.String({ description: "What was done (past tense, required)" }),
             }),
-            async execute(_toolCallId, params, ctx) {
+            async execute(_id, params) {
                 try {
+                    const c = effCtx(toolCtx);
                     const p = params;
                     const raw = String(p.need ?? "").trim();
                     if (!KEYS.includes(raw))
                         throw new Error(`unknown need: ${raw} (drive|curiosity|disorder|loneliness|boredom)`);
-                    const f = statePath(ctx);
+                    const f = statePath(c);
                     const s = loadAndTick(f);
                     doResetKey(s, raw, p.action);
                     saveState(f, s);
@@ -90,14 +98,14 @@ export default definePluginEntry({
                     return { content: [{ type: "text", text }], details: { error: true } };
                 }
             },
-        });
-        api.registerTool({
+        }));
+        api.registerTool((toolCtx) => ({
             name: "tamagi_log",
             label: "Tamagi log",
             description: "Recent tamagiclaw actions.",
             parameters: Type.Object({ limit: Type.Optional(Type.Number({ description: "Max lines (default 15)" })) }),
-            async execute(_toolCallId, params, ctx) {
-                const s = read(ctx);
+            async execute(_id, params) {
+                const s = read(effCtx(toolCtx));
                 const n = Math.max(1, Math.min(32, Number(params.limit ?? 15)));
                 const lines = fmtLog((s.log || []).slice(-n));
                 return {
@@ -105,7 +113,7 @@ export default definePluginEntry({
                     details: { count: lines.length },
                 };
             },
-        });
+        }));
         const hb = (ctx, fn) => {
             try {
                 return { text: fn(tasksPath(ctx)) };
@@ -122,14 +130,15 @@ export default definePluginEntry({
             { name: "tamagi_task_delete", label: "Task delete", desc: "Delete a task permanently.", params: { id: Type.String() }, run: (f, p) => hbDelete(f, String(p.id)) },
         ];
         for (const t of hbTools) {
-            api.registerTool({
+            api.registerTool((toolCtx) => ({
                 name: t.name, label: t.label, description: t.desc,
                 parameters: Type.Object(t.params),
-                async execute(_toolCallId, params, ctx) {
-                    const r = hb(ctx, (f) => t.run(f, params));
+                async execute(_id, params) {
+                    const c = effCtx(toolCtx);
+                    const r = hb(c, (f) => t.run(f, params));
                     return { content: [{ type: "text", text: r.text }], details: {} };
                 },
-            });
+            }));
         }
         api.registerCommand({
             name: "tamagi",
